@@ -3,7 +3,8 @@ name: trunk
 on:
   pull_request:
     tags:
-      - ciflow/trunk/*
+      - ciflow/trunk
+      - ciflow/trunk/all
   push:
     branches:
       - main
