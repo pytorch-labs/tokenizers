@@ -1,10 +1,16 @@
 name: trunk
 
 on:
-  pull_request:
   push:
     branches:
       - main
+      - release/*
+    tags:
+      - ciflow/trunk/*
+  pull_request:
+    paths:
+      - CMakeLists.txt
+      - .github/workflows/trunk.yml
   workflow_dispatch:
 
 concurrency:
