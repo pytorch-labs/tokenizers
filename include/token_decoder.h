@@ -45,6 +45,9 @@ class TokenDecoder {
    */
   virtual std::string decode(re2::StringPiece token) const = 0;
 
+  // virtual destructor
+  virtual ~TokenDecoder() = default;
+
 }; // end class TokenDecoder
 
 // -- Factory ------------------------------------------------------------------

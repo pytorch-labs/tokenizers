@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-// A tokenizer that works with sentencepiece.
+// A tokenizer that works with sentencepiece. Used by Llama2.
 #pragma once
 
 #include <memory>

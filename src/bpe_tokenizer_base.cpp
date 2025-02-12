@@ -56,7 +56,7 @@ static std::vector<uint64_t> _byte_pair_merge(
     if (rank) {
       // usize::MAX is a sentinel value and cannot be a valid rank
       if (*rank == _max_size()) {
-        fprintf(stderr, "at %" PRIu32 " rank is too large\n", i);
+        TK_LOG(Error, "at %" PRIu32 " rank is too large\n", i);
       }
       parts[i].second = *rank;
     }
@@ -177,8 +177,8 @@ BPETokenizerBase::encode_with_special_token_(
       } catch (const std::out_of_range&) {
         // Should never go here, since special pattern includes all special
         // chars.
-        fprintf(stderr, "unknown special token: %s\n", special->c_str());
-        exit(EXIT_FAILURE);
+        TK_LOG(Error, "unknown special token: %s\n", special->c_str());
+        return Error::EncodeFailure;
       }
 
       tokens.push_back(token);
@@ -259,8 +259,8 @@ Result<std::string> BPETokenizerBase::decode(uint64_t prev, uint64_t cur)
     if (iter != special_token_decoder_.end()) {
       token_bytes = iter->second;
     } else {
-      fprintf(stderr, "unknown token: %" PRIu64 "\n", cur);
-      exit(EXIT_FAILURE);
+      TK_LOG(Error, "unknown token: %" PRIu64 "\n", cur);
+      return Error::DecodeFailure;
     }
   }
   _decode(token_bytes, ret);
