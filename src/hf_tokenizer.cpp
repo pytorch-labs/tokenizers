@@ -256,7 +256,7 @@ void HFTokenizer::_decode(re2::StringPiece input, std::string& ret) const {
   if (_decoder) {
     ret += _decoder->decode(input);
   } else {
-    ret += input;
+    ret += input.as_string();
   }
 }
 

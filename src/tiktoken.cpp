@@ -183,7 +183,7 @@ Error Tiktoken::_encode(
 }
 
 void Tiktoken::_decode(re2::StringPiece input, std::string& ret) const {
-  ret += input;
+  ret += input.as_string();
 }
 
 template <typename T>

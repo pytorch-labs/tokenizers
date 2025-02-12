@@ -41,6 +41,8 @@ class PreTokenizer {
    */
   virtual std::vector<std::string> pre_tokenize(
       re2::StringPiece input) const = 0;
+
+  virtual ~PreTokenizer() = default;
 }; // end class PreTokenizer
 
 // -- Factory ------------------------------------------------------------------
