@@ -6,9 +6,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#ifdef TOKENIZERS_FB_BUCK
-#include <TestResourceUtils/TestResourceUtils.h>
-#endif
 #include <gtest/gtest.h>
 #include <pytorch/tokenizers/llama2c_tokenizer.h>
 
@@ -16,24 +13,12 @@ using namespace ::testing;
 
 namespace tokenizers {
 
-namespace {
-// Test case based on llama2.c tokenizer
-static inline std::string _get_resource_path(const std::string& name) {
-#ifdef TOKENIZERS_FB_BUCK
-  return facebook::xplat::testing::getPathForTestResource(
-      "test/resources/" + name);
-#else
-  return std::getenv("RESOURCES_PATH") + std::string("/") + name;
-#endif
-}
-
-} // namespace
-
 class Llama2cTokenizerTest : public Test {
- public:
+public:
   void SetUp() override {
     tokenizer_ = std::make_unique<Llama2cTokenizer>();
-    modelPath_ = _get_resource_path("test_llama2c_tokenizer.bin");
+    modelPath_ = std::getenv("RESOURCES_PATH") +
+                 std::string("/test_llama2c_tokenizer.bin");
   }
 
   std::unique_ptr<Tokenizer> tokenizer_;
@@ -51,7 +36,7 @@ TEST_F(Llama2cTokenizerTest, DecodeWithoutLoadFails) {
 }
 
 TEST_F(Llama2cTokenizerTest, DecodeOutOfRangeFails) {
-  Error res = tokenizer_->load(modelPath_.c_str());
+  Error res = tokenizer_->load(modelPath_);
   EXPECT_EQ(res, Error::Ok);
   auto result = tokenizer_->decode(0, 64000);
   // The vocab size is 32000, and token 64000 is out of vocab range.
@@ -59,7 +44,7 @@ TEST_F(Llama2cTokenizerTest, DecodeOutOfRangeFails) {
 }
 
 TEST_F(Llama2cTokenizerTest, TokenizerMetadataIsExpected) {
-  Error res = tokenizer_->load(modelPath_.c_str());
+  Error res = tokenizer_->load(modelPath_);
   EXPECT_EQ(res, Error::Ok);
   // test_bpe_tokenizer.bin has vocab_size 0, bos_id 0, eos_id 0 recorded.
   EXPECT_EQ(tokenizer_->vocab_size(), 0);
