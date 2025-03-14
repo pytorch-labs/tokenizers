@@ -27,15 +27,17 @@ jobs:
       ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       timeout: 90
       script: |
-        set -ex
+        set -euo pipefail
 
-        # CACHE_DIRECTORY="/tmp/.lintbin"
-        # # Try to recover the cached binaries
-        # if [[ -d "${CACHE_DIRECTORY}" ]]; then
-        #   # It's ok to fail this as lintrunner init would download these binaries
-        #   # again if they do not exist
-        #   cp -r "${CACHE_DIRECTORY}" . || true
-        # fi
+        export PYTHON_VERSION=3.11
+        export GPU_ARCH_TYPE=cpu
+        export GPU_ARCH_VERSION=''
+
+        ./.github/scripts/setup-env.sh
+
+        CONDA_PATH=$(which conda)
+        eval "$(${CONDA_PATH} shell.bash hook)"
+        conda activate ci
 
         # This has already been cached in the docker image
         lintrunner init 2> /dev/null
