@@ -35,8 +35,6 @@ jobs:
 
         ./.github/scripts/setup-env.sh
 
-        CONDA_PATH=$(which conda)
-        eval "$(${CONDA_PATH} shell.bash hook)"
         conda activate ci
 
         # This has already been cached in the docker image
