@@ -22,23 +22,17 @@ jobs:
       contents: read
     with:
       runner: linux.2xlarge
-      docker-image: pytorch-linux-focal-linter
       submodules: 'true'
       fetch-depth: 0
       ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       timeout: 90
       script: |
         set -euo pipefail
+        echo '::group::Setup environment'
+        conda create --name ci --quiet --yes -c conda-forge python=3.11 clang-format
 
-        export PYTHON_VERSION=3.11
-        export GPU_ARCH_TYPE=cpu
-        export GPU_ARCH_VERSION=''
-
-        ./.github/scripts/setup-env.sh
-
-        # The generic Linux job chooses to use base env, not the one setup by the image
-        CONDA_ENV=$(conda env list --json | jq -r ".envs | .[-1]")
-        conda activate "${CONDA_ENV}"
+        conda activate ci
+        echo '::endgroup::'
 
         # This has already been cached in the docker image
         lintrunner init 2> /dev/null
