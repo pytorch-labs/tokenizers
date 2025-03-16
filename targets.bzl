@@ -1,8 +1,7 @@
-load("@fbsource//tools/build_defs:platform_defs.bzl", "ANDROID", "APPLE", "CXX", "FBCODE")
 load("@fbsource//xplat/executorch/build:runtime_wrapper.bzl", "runtime")
 load("@fbsource//xplat/executorch/third-party:glob_defs.bzl", "subdir_glob")
 
-PLATFORMS = (CXX, ANDROID, APPLE, FBCODE)
+PLATFORMS = runtime.get_executorch_supported_platforms()
 
 def define_common_targets():
     """Defines targets that should be shared between fbcode and xplat.
