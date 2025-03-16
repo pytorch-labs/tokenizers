@@ -68,19 +68,6 @@ def define_common_targets():
     )
 
     runtime.cxx_library(
-        name = "unicode",
-        srcs = [
-            "third-party/llama.cpp-unicode/src/unicode.cpp",
-            "third-party/llama.cpp-unicode/src/unicode-data.cpp",
-        ],
-        exported_headers = subdir_glob([
-            ("include", "pytorch/tokenizers/third-party/llama.cpp-unicode/*.h"),
-        ]),
-        header_namespace = "",
-        platforms = PLATFORMS,
-    )
-
-    runtime.cxx_library(
         name = "hf_tokenizer",
         srcs = [
             "src/hf_tokenizer.cpp",
@@ -90,7 +77,7 @@ def define_common_targets():
         ],
         exported_deps = [
             ":headers",
-            ":unicode",
+            "//pytorch/tokenizers/third-party:unicode",
         ],
         visibility = [
             "@EXECUTORCH_CLIENTS",
