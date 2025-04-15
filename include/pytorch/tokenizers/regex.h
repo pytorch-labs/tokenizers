@@ -32,10 +32,3 @@ class IRegex {
  * @return A unique pointer to an IRegex-compatible object.
  */
 std::unique_ptr<IRegex> createRegex(const std::string& pattern);
-
-// /**
-//  * Factory functions for creating specific regex instances, prefer using
-//  * createRegex unless you know you need to use a specific regex.
-//  */
-// std::unique_ptr<IRegex> MakeRe2Regex(const std::string& pattern);
-// std::unique_ptr<IRegex> MakeStdRegex(const std::string& pattern);
