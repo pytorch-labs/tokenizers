@@ -37,7 +37,7 @@ class Pcre2Regex : public IRegex {
   /**
    * @brief Check if PCRE2 compiled the pattern successfully.
    */
-  bool ok() const;
+  bool ok() const override;
 
  protected:
   /**

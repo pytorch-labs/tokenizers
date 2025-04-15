@@ -18,3 +18,9 @@ std::vector<Match> StdRegex::findAll(const std::string& text) const {
 
   return result;
 }
+
+bool StdRegex::ok() const {
+  // std::regex constructor throws if the pattern is invalid
+  // If we got here, the pattern is valid
+  return true;
+}

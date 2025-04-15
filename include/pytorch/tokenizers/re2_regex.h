@@ -26,12 +26,12 @@ class Re2Regex : public IRegex {
    */
   virtual std::vector<Match> findAll(const std::string& text) const override;
 
- protected:
   /**
    * @brief Check if RE2 compiled the pattern successfully.
    */
-  bool ok() const;
+  bool ok() const override;
 
+ protected:
   /**
    * @brief Expose internal RE2 pointer to the factory if needed.
    */
