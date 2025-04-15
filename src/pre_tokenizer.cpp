@@ -151,8 +151,9 @@ std::vector<std::string> ByteLevelPreTokenizer::pre_tokenize(
     const std::string& input) const {
   // Add the prefix space if configured to do so.
   std::string formatted_input = input;
-  if (add_prefix_space_ && !input.empty() && input[0] != ' ') {
-    formatted_input.insert(input.begin(), ' ');
+  if (add_prefix_space_ && !formatted_input.empty() &&
+      formatted_input[0] != ' ') {
+    formatted_input.insert(formatted_input.begin(), ' ');
   }
 
   return unicode_regex_split(formatted_input, {pattern_});
