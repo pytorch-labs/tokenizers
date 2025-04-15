@@ -1,9 +1,7 @@
 #include "pytorch/tokenizers/std_regex.h"
 #include <regex>
 
-StdRegex::StdRegex(const std::string& pattern)
-    : regex_("(" + pattern + ")") // Add parentheses like RE2 version
-{}
+StdRegex::StdRegex(const std::string& pattern) : regex_(pattern) {}
 
 std::vector<Match> StdRegex::findAll(const std::string& text) const {
   std::vector<Match> result;

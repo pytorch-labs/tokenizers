@@ -2,10 +2,12 @@
 
 #include <memory>
 #include <string>
-#include "regex.h"
 
 // Third Party
 #include <re2/re2.h>
+
+// Local
+#include "regex.h"
 
 /**
  * @brief RE2-based implementation of IRegex.
