@@ -51,4 +51,4 @@ class Pcre2Regex : public IRegex {
   bool is_valid_;
 
   friend std::unique_ptr<IRegex> createRegex(const std::string& pattern);
-}; 
+};
