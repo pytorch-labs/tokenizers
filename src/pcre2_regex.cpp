@@ -1,7 +1,9 @@
-#include "pytorch/tokenizers/pcre2_regex.h"
-
 #include <iostream>
 #include <vector>
+
+#include <pytorch/tokenizers/pcre2_regex.h>
+
+namespace tokenizers {
 
 Pcre2Regex::Pcre2Regex(const std::string& pattern)
     : regex_(nullptr), match_data_(nullptr), is_valid_(false) {
@@ -109,3 +111,5 @@ bool Pcre2Regex::ok() const {
 const pcre2_code* Pcre2Regex::rawRegex() const {
   return regex_;
 }
+
+} // namespace tokenizers

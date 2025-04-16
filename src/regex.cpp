@@ -1,5 +1,6 @@
-#include <pytorch/tokenizers/regex.h>
+#include <pytorch/tokenizers/pcre2_regex.h>
 #include <pytorch/tokenizers/re2_regex.h>
+#include <pytorch/tokenizers/regex.h>
 #include <pytorch/tokenizers/std_regex.h>
 
 #include <re2/re2.h>

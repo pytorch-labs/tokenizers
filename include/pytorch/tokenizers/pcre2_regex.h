@@ -5,12 +5,11 @@
 
 // Define PCRE2 code unit width before including pcre2.h
 #define PCRE2_CODE_UNIT_WIDTH 8
-
-// Third Party
 #include <pcre2.h>
 
-// Local
-#include "regex.h"
+#include <pytorch/tokenizers/regex.h>
+
+namespace tokenizers {
 
 /**
  * @brief PCRE2-based implementation of IRegex.
@@ -50,5 +49,8 @@ class Pcre2Regex : public IRegex {
   pcre2_match_data* match_data_;
   bool is_valid_;
 
-  friend std::unique_ptr<IRegex> createRegex(const std::string& pattern);
+  friend Result<std::unique_ptr<IRegex>> createRegex(
+      const std::string& pattern);
 };
+
+} // namespace tokenizers
