@@ -1,11 +1,21 @@
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 #pragma once
 
 #include <memory>
 #include <string>
-#include "regex.h"
 
-// Third Party
 #include <re2/re2.h>
+
+#include <pytorch/tokenizers/regex.h>
+
+namespace tokenizers {
 
 /**
  * @brief RE2-based implementation of IRegex.
@@ -24,11 +34,10 @@ class Re2Regex : public IRegex {
    */
   virtual std::vector<Match> findAll(const std::string& text) const override;
 
- protected:
   /**
    * @brief Check if RE2 compiled the pattern successfully.
    */
-  bool ok() const;
+  bool ok() const override;
 
   /**
    * @brief Expose internal RE2 pointer to the factory if needed.
@@ -38,5 +47,8 @@ class Re2Regex : public IRegex {
  private:
   std::unique_ptr<re2::RE2> regex_;
 
-  friend std::unique_ptr<IRegex> createRegex(const std::string& pattern);
+  friend Result<std::unique_ptr<IRegex>> createRegex(
+      const std::string& pattern);
 };
+
+} // namespace tokenizers
