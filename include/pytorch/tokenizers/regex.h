@@ -1,13 +1,25 @@
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 #pragma once
 
 #include <memory>
 #include <string>
 #include <vector>
 
+#include <pytorch/tokenizers/result.h>
+
 struct Match {
   std::string text;
   size_t position;
 };
+
+namespace tokenizers {
 
 /**
  * @brief Abstract interface for regex wrappers.
@@ -23,6 +35,13 @@ class IRegex {
    * @return A vector of strings containing all matched substrings.
    */
   virtual std::vector<Match> findAll(const std::string& text) const = 0;
+
+  /**
+   * @brief Check if the regex pattern was compiled successfully.
+   *
+   * @return true if the pattern is valid and ready to use, false otherwise.
+   */
+  virtual bool ok() const = 0;
 };
 
 /**
@@ -31,4 +50,6 @@ class IRegex {
  * @param pattern The regex pattern to compile.
  * @return A unique pointer to an IRegex-compatible object.
  */
-std::unique_ptr<IRegex> createRegex(const std::string& pattern);
+Result<std::unique_ptr<IRegex>> createRegex(const std::string& pattern);
+
+} // namespace tokenizers
