@@ -41,4 +41,8 @@ const re2::RE2* Re2Regex::rawRegex() const {
   return regex_.get();
 }
 
+<<<<<<< HEAD
 } // namespace tokenizers
+=======
+}
+>>>>>>> @{-1}
