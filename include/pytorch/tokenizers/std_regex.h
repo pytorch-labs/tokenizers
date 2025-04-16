@@ -1,9 +1,19 @@
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 #pragma once
 
 #include <memory>
 #include <regex>
 #include <string>
 #include "regex.h"
+
+namespace tokenizers {
 
 /**
  * @brief std::regex-based implementation of IRegex.
@@ -23,6 +33,15 @@ class StdRegex : public IRegex {
    */
   virtual std::vector<Match> findAll(const std::string& text) const override;
 
+  /**
+   * @brief Check if std::regex compiled the pattern successfully.
+   *
+   * @return true if the pattern is valid, false otherwise.
+   */
+  bool ok() const override;
+
  private:
   std::regex regex_;
 };
+
+} // namespace tokenizers

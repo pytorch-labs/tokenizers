@@ -1,5 +1,15 @@
-#include "pytorch/tokenizers/std_regex.h"
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+#include <pytorch/tokenizers/std_regex.h>
 #include <regex>
+
+using namespace tokenizers;
 
 StdRegex::StdRegex(const std::string& pattern) : regex_(pattern) {}
 
@@ -17,4 +27,10 @@ std::vector<Match> StdRegex::findAll(const std::string& text) const {
   }
 
   return result;
+}
+
+bool StdRegex::ok() const {
+  // std::regex constructor throws if the pattern is invalid
+  // If we got here, the pattern is valid
+  return true;
 }
