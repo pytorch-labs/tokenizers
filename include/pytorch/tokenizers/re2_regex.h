@@ -40,5 +40,6 @@ class Re2Regex : public IRegex {
  private:
   std::unique_ptr<re2::RE2> regex_;
 
-  friend std::unique_ptr<IRegex> createRegex(const std::string& pattern);
+  friend tokenizers::Result<std::unique_ptr<IRegex>> createRegex(
+      const std::string& pattern);
 };

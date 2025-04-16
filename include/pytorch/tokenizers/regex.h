@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <pytorch/tokenizers/result.h>
+
 struct Match {
   std::string text;
   size_t position;
@@ -38,4 +40,5 @@ class IRegex {
  * @param pattern The regex pattern to compile.
  * @return A unique pointer to an IRegex-compatible object.
  */
-std::unique_ptr<IRegex> createRegex(const std::string& pattern);
+tokenizers::Result<std::unique_ptr<IRegex>> createRegex(
+    const std::string& pattern);

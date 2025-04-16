@@ -50,5 +50,6 @@ class Pcre2Regex : public IRegex {
   pcre2_match_data* match_data_;
   bool is_valid_;
 
-  friend std::unique_ptr<IRegex> createRegex(const std::string& pattern);
+  friend tokenizers::Result<std::unique_ptr<IRegex>> createRegex(
+      const std::string& pattern);
 };
