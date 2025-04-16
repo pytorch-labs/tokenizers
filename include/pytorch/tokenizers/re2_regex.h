@@ -39,7 +39,6 @@ class Re2Regex : public IRegex {
    */
   bool ok() const override;
 
- protected:
   /**
    * @brief Expose internal RE2 pointer to the factory if needed.
    */
