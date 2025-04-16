@@ -9,7 +9,7 @@
 #include <pytorch/tokenizers/std_regex.h>
 #include <regex>
 
-using namespace tokenizers;
+namespace tokenizers {
 
 StdRegex::StdRegex(const std::string& pattern) : regex_(pattern) {}
 
@@ -34,3 +34,5 @@ bool StdRegex::ok() const {
   // If we got here, the pattern is valid
   return true;
 }
+
+} // namespace tokenizers

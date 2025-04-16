@@ -14,12 +14,12 @@
 
 #include <pytorch/tokenizers/result.h>
 
+namespace tokenizers {
+
 struct Match {
   std::string text;
   size_t position;
 };
-
-namespace tokenizers {
 
 /**
  * @brief Abstract interface for regex wrappers.

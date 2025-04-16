@@ -41,12 +41,13 @@ using namespace detail;
 // ------------------------------Util start------------------------------------
 namespace {
 
-static std::unique_ptr<IRegex> _create_regex(const std::string& pattern) {
+static Result<std::unique_ptr<IRegex>> _create_regex(
+    const std::string& pattern) {
   assert(!pattern.empty());
   return createRegex(pattern);
 }
 
-static std::unique_ptr<IRegex> _build_special_token_regex(
+static Result<std::unique_ptr<IRegex>> _build_special_token_regex(
     const std::vector<std::pair<std::string, std::uint64_t>>& special_encoder) {
   std::string special_pattern;
   for (const auto& ele : special_encoder) {
@@ -56,7 +57,7 @@ static std::unique_ptr<IRegex> _build_special_token_regex(
     special_pattern += re2::RE2::QuoteMeta(ele.first);
   }
   if (special_pattern.empty()) {
-    return nullptr;
+    return static_cast<std::unique_ptr<IRegex>>(nullptr);
   }
   return _create_regex(special_pattern);
 }
@@ -152,8 +153,9 @@ Error Tiktoken::load(const std::string& path) {
 
   special_token_map_.emplace(TokenMap(special_token_map));
 
-  _regex = _create_regex(_pattern);
-  special_token_regex_ = _build_special_token_regex(special_token_map);
+  _regex = TK_UNWRAP(_create_regex(_pattern));
+  special_token_regex_ =
+      TK_UNWRAP(_build_special_token_regex(special_token_map));
 
   // initialize vocab_size, bos_tok, eos_tok
   vocab_size_ = token_map_->size() + special_token_map_->size();

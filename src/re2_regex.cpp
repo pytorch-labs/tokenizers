@@ -8,7 +8,7 @@
 
 #include <pytorch/tokenizers/re2_regex.h>
 
-using namespace tokenizers;
+namespace tokenizers {
 
 Re2Regex::Re2Regex(const std::string& pattern) {
   regex_ = std::make_unique<re2::RE2>(pattern);
@@ -40,3 +40,5 @@ bool Re2Regex::ok() const {
 const re2::RE2* Re2Regex::rawRegex() const {
   return regex_.get();
 }
+
+} // namespace tokenizers
