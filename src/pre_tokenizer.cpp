@@ -118,7 +118,7 @@ std::vector<std::string> RegexPreTokenizer::pre_tokenize(
     return {};
   std::vector<std::string> results;
   for (const auto& match : regex_->find_all(input)) {
-    results.push_back(match.text);
+    results.push_back(input.substr(match.start, match.end - match.start));
   }
   return results;
 }

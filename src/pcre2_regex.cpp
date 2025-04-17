@@ -90,12 +90,8 @@ std::vector<Match> Pcre2Regex::find_all(const std::string& text) const {
 
     ovector = pcre2_get_ovector_pointer(match_data_);
 
-    // Extract the match
-    size_t match_start = ovector[0];
-    size_t match_length = ovector[1] - ovector[0];
-
     // Add the match to the result
-    result.push_back({text.substr(match_start, match_length), match_start});
+    result.push_back({ovector[0], ovector[1]});
 
     // Move to the next position after the match
     offset = ovector[1];

@@ -20,10 +20,8 @@ std::vector<Match> StdRegex::find_all(const std::string& text) const {
 
   for (; iter != end; ++iter) {
     const auto& match = *iter;
-    result.push_back({
-        match[1].str(), // capture group 1
-        static_cast<size_t>(match.position(1)) // position of group 1
-    });
+    size_t start = match.position(1);
+    result.push_back({start, start + match[1].length()});
   }
 
   return result;

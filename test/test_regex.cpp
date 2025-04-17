@@ -23,10 +23,16 @@ TEST_F(RegexTest, BasicMatching) {
   std::string text = "Hello world";
   auto matches = regex->find_all(text);
   ASSERT_EQ(matches.size(), 2);
-  EXPECT_EQ(matches[0].text, "Hello");
-  EXPECT_EQ(matches[0].position, 0);
-  EXPECT_EQ(matches[1].text, "world");
-  EXPECT_EQ(matches[1].position, 6);
+  EXPECT_EQ(matches[0].start, 0);
+  EXPECT_EQ(matches[0].end, 5);
+  EXPECT_EQ(
+      text.substr(matches[0].start, matches[0].end - matches[0].start),
+      "Hello");
+  EXPECT_EQ(matches[1].start, 6);
+  EXPECT_EQ(matches[1].end, 11);
+  EXPECT_EQ(
+      text.substr(matches[1].start, matches[1].end - matches[1].start),
+      "world");
 }
 
 // Test pattern that only PCRE2 supports (lookbehind)
@@ -40,8 +46,11 @@ TEST_F(RegexTest, Pcre2Specific) {
   std::string text = "user@example.com";
   auto matches = regex->find_all(text);
   ASSERT_EQ(matches.size(), 1);
-  EXPECT_EQ(matches[0].text, "example");
-  EXPECT_EQ(matches[0].position, 5);
+  EXPECT_EQ(matches[0].start, 5);
+  EXPECT_EQ(matches[0].end, 12);
+  EXPECT_EQ(
+      text.substr(matches[0].start, matches[0].end - matches[0].start),
+      "example");
 }
 
 // Test complex pattern with negative lookahead that should fall back to PCRE2.
@@ -68,21 +77,31 @@ TEST_F(RegexTest, ComplexPatternWithNegativeLookahead) {
   // 6. " test" (word with leading space)
   ASSERT_EQ(matches.size(), 6);
 
-  EXPECT_EQ(matches[0].text, "Hello");
-  EXPECT_EQ(matches[0].position, 0);
-
-  EXPECT_EQ(matches[1].text, "'s");
-  EXPECT_EQ(matches[1].position, 5);
-
-  EXPECT_EQ(matches[2].text, " world");
-  EXPECT_EQ(matches[2].position, 7);
-
-  EXPECT_EQ(matches[3].text, "\n");
-  EXPECT_EQ(matches[3].position, 13);
-
-  EXPECT_EQ(matches[4].text, " ");
-  EXPECT_EQ(matches[4].position, 14);
-
-  EXPECT_EQ(matches[5].text, " test");
-  EXPECT_EQ(matches[5].position, 15);
+  EXPECT_EQ(matches[0].start, 0);
+  EXPECT_EQ(matches[0].end, 5);
+  EXPECT_EQ(
+      text.substr(matches[0].start, matches[0].end - matches[0].start),
+      "Hello");
+  EXPECT_EQ(matches[1].start, 5);
+  EXPECT_EQ(matches[1].end, 7);
+  EXPECT_EQ(
+      text.substr(matches[1].start, matches[1].end - matches[1].start), "'s");
+  EXPECT_EQ(matches[2].start, 7);
+  EXPECT_EQ(matches[2].end, 13);
+  EXPECT_EQ(
+      text.substr(matches[2].start, matches[2].end - matches[2].start),
+      " world");
+  EXPECT_EQ(matches[3].start, 13);
+  EXPECT_EQ(matches[3].end, 14);
+  EXPECT_EQ(
+      text.substr(matches[3].start, matches[3].end - matches[3].start), "\n");
+  EXPECT_EQ(matches[4].start, 14);
+  EXPECT_EQ(matches[4].end, 15);
+  EXPECT_EQ(
+      text.substr(matches[4].start, matches[4].end - matches[4].start), " ");
+  EXPECT_EQ(matches[5].start, 15);
+  EXPECT_EQ(matches[5].end, 20);
+  EXPECT_EQ(
+      text.substr(matches[5].start, matches[5].end - matches[5].start),
+      " test");
 }

@@ -118,13 +118,15 @@ Error Tiktoken::_encode(
   std::string piece;
   assert(_regex);
   for (const auto& match : _regex->find_all(input)) {
-    const auto result = token_map_->tryGetInteger(match.text);
+    std::string matched_text =
+        input.substr(match.start, match.end - match.start);
+    const auto result = token_map_->tryGetInteger(matched_text);
     if (result) {
       last_piece_token_len = 1;
       ret.push_back(*result);
       continue;
     }
-    auto tokens = TK_UNWRAP(byte_pair_encode_(match.text, *token_map_));
+    auto tokens = TK_UNWRAP(byte_pair_encode_(matched_text, *token_map_));
     last_piece_token_len = tokens.size();
     ret.insert(ret.end(), tokens.begin(), tokens.end());
   }
