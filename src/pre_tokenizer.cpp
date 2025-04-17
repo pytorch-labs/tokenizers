@@ -13,7 +13,6 @@
 
 // Standard
 #include <algorithm>
-#include <iostream>
 #include <iterator>
 #include <utility>
 
