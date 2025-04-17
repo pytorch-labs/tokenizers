@@ -34,7 +34,7 @@ class IRegex {
    * @param text The input string to search.
    * @return A vector of strings containing all matched substrings.
    */
-  virtual std::vector<Match> findAll(const std::string& text) const = 0;
+  virtual std::vector<Match> find_all(const std::string& text) const = 0;
 
   /**
    * @brief Check if the regex pattern was compiled successfully.
@@ -50,6 +50,6 @@ class IRegex {
  * @param pattern The regex pattern to compile.
  * @return A unique pointer to an IRegex-compatible object.
  */
-Result<std::unique_ptr<IRegex>> createRegex(const std::string& pattern);
+Result<std::unique_ptr<IRegex>> create_regex(const std::string& pattern);
 
 } // namespace tokenizers

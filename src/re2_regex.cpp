@@ -18,7 +18,7 @@ Re2Regex::Re2Regex(const std::string& pattern) {
   (void)regex_->ReverseProgramSize();
 }
 
-std::vector<Match> Re2Regex::findAll(const std::string& text) const {
+std::vector<Match> Re2Regex::find_all(const std::string& text) const {
   std::vector<Match> result;
   re2::StringPiece input(text);
   re2::StringPiece piece;
