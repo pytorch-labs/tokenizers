@@ -33,13 +33,6 @@ class StdRegex : public IRegex {
    */
   virtual std::vector<Match> find_all(const std::string& text) const override;
 
-  /**
-   * @brief Check if std::regex compiled the pattern successfully.
-   *
-   * @return true if the pattern is valid, false otherwise.
-   */
-  bool ok() const override;
-
  private:
   std::regex regex_;
 };
