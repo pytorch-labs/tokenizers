@@ -41,20 +41,9 @@ class Pcre2Regex : public IRegex {
    */
   virtual std::vector<Match> find_all(const std::string& text) const override;
 
-  /**
-   * @brief Check if PCRE2 compiled the pattern successfully.
-   */
-  bool ok() const override;
-
-  /**
-   * @brief Expose internal PCRE2 pointer to the factory if needed.
-   */
-  const pcre2_code* rawRegex() const;
-
  private:
   pcre2_code* regex_;
   pcre2_match_data* match_data_;
-  bool is_valid_;
 
   friend Result<std::unique_ptr<IRegex>> create_regex(
       const std::string& pattern);

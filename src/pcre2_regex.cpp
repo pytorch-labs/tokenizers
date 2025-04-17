@@ -14,7 +14,7 @@
 namespace tokenizers {
 
 Pcre2Regex::Pcre2Regex(const std::string& pattern)
-    : regex_(nullptr), match_data_(nullptr), is_valid_(false) {
+    : regex_(nullptr), match_data_(nullptr) {
   int error_code;
   PCRE2_SIZE error_offset;
 
@@ -43,8 +43,6 @@ Pcre2Regex::Pcre2Regex(const std::string& pattern)
     std::cerr << "Failed to create PCRE2 match data" << std::endl;
     return;
   }
-
-  is_valid_ = true;
 }
 
 Pcre2Regex::~Pcre2Regex() {
@@ -59,7 +57,7 @@ Pcre2Regex::~Pcre2Regex() {
 std::vector<Match> Pcre2Regex::find_all(const std::string& text) const {
   std::vector<Match> result;
 
-  if (!is_valid_ || !regex_ || !match_data_) {
+  if (!regex_ || !match_data_) {
     return result;
   }
 
@@ -110,14 +108,6 @@ std::vector<Match> Pcre2Regex::find_all(const std::string& text) const {
   }
 
   return result;
-}
-
-bool Pcre2Regex::ok() const {
-  return is_valid_ && regex_ != nullptr && match_data_ != nullptr;
-}
-
-const pcre2_code* Pcre2Regex::rawRegex() const {
-  return regex_;
 }
 
 } // namespace tokenizers

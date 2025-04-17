@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 #include <gtest/gtest.h>
 
 #include "pytorch/tokenizers/pcre2_regex.h"
@@ -6,10 +14,11 @@
 
 using namespace tokenizers;
 
+class RegexTest : public ::testing::Test {};
+
 // Test basic functionality
-TEST(RegexTest, BasicMatching) {
+TEST_F(RegexTest, BasicMatching) {
   auto regex = TK_UNWRAP_THROW(create_regex("\\w+"));
-  ASSERT_TRUE(regex->ok());
 
   std::string text = "Hello world";
   auto matches = regex->find_all(text);
@@ -21,15 +30,12 @@ TEST(RegexTest, BasicMatching) {
 }
 
 // Test pattern that only PCRE2 supports (lookbehind)
-TEST(RegexTest, Pcre2Specific) {
-  // First verify that RE2 cannot handle this pattern
+TEST_F(RegexTest, Pcre2Specific) {
   const std::string pattern = "(?<=@)\\w+";
-  Re2Regex re2_regex(pattern);
-  ASSERT_FALSE(re2_regex.ok());
 
-  // Now verify that the factory function fallsback on a PCRE2 regex
+  // Verify that the factory function fallsback on a PCRE2 regex
   auto regex = TK_UNWRAP_THROW(create_regex(pattern));
-  ASSERT_TRUE(regex->ok());
+  EXPECT_NE(dynamic_cast<Pcre2Regex*>(regex.get()), nullptr);
 
   std::string text = "user@example.com";
   auto matches = regex->find_all(text);
@@ -41,17 +47,13 @@ TEST(RegexTest, Pcre2Specific) {
 // Test complex pattern with negative lookahead that should fall back to PCRE2.
 // This specific pattern is from the Qwen2.5 1.5B pretokenizer.
 // https://huggingface.co/Qwen/Qwen2.5-1.5B/raw/main/tokenizer.json
-TEST(RegexTest, ComplexPatternWithNegativeLookahead) {
+TEST_F(RegexTest, ComplexPatternWithNegativeLookahead) {
   const std::string complex_pattern =
       "(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\\r\\n\\p{L}\\p{N}]?\\p{L}+|\\p{N}| ?[^\\s\\p{L}\\p{N}]+[\\r\\n]*|\\s*[\\r\\n]+|\\s+(?!\\S)|\\s+";
 
-  // First verify that RE2 cannot handle this pattern
-  Re2Regex re2_regex(complex_pattern);
-  ASSERT_FALSE(re2_regex.ok());
-
   // Now verify that the factory function fallsback on a PCRE2 regex
   auto regex = TK_UNWRAP_THROW(create_regex(complex_pattern));
-  ASSERT_TRUE(regex->ok());
+  EXPECT_NE(dynamic_cast<Pcre2Regex*>(regex.get()), nullptr);
 
   // Test the pattern with some sample text
   std::string text = "Hello's world\n  test";
