@@ -21,7 +21,8 @@ namespace tokenizers {
  *        Falls back to std::regex if RE2 rejects the pattern with
  *        ErrorBadPerlOp.
  */
-Result<std::unique_ptr<IRegex>> createRegex(const std::string& pattern) {
+Result<std::unique_ptr<IRegex>> create_regex(const std::string& pattern) {
+  // Try RE2 first
   auto re2 = std::make_unique<Re2Regex>("(" + pattern + ")");
 
   if (re2->ok()) {

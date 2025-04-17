@@ -13,7 +13,7 @@ namespace tokenizers {
 
 StdRegex::StdRegex(const std::string& pattern) : regex_(pattern) {}
 
-std::vector<Match> StdRegex::findAll(const std::string& text) const {
+std::vector<Match> StdRegex::find_all(const std::string& text) const {
   std::vector<Match> result;
   std::sregex_iterator iter(text.begin(), text.end(), regex_);
   std::sregex_iterator end;

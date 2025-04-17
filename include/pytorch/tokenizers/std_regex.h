@@ -31,7 +31,7 @@ class StdRegex : public IRegex {
   /**
    * @brief Find all non-overlapping matches in the input string.
    */
-  virtual std::vector<Match> findAll(const std::string& text) const override;
+  virtual std::vector<Match> find_all(const std::string& text) const override;
 
   /**
    * @brief Check if std::regex compiled the pattern successfully.
