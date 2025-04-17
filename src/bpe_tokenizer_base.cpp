@@ -142,8 +142,9 @@ BPETokenizerBase::split_with_allowed_special_token_(
   auto matches = special_token_regex_->find_all(input.substr(offset));
 
   for (const auto& m : matches) {
-    if (allowed_special.tryGetInteger(m.text).has_value()) {
-      return {m.text, input.substr(offset, m.position)};
+    std::string matched_text = input.substr(offset + m.start, m.end - m.start);
+    if (allowed_special.tryGetInteger(matched_text).has_value()) {
+      return {matched_text, input.substr(offset, m.start)};
     }
   }
 

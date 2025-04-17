@@ -17,8 +17,8 @@
 namespace tokenizers {
 
 struct Match {
-  std::string text;
-  size_t position;
+  size_t start; // starting index of the match
+  size_t end; // ending index of the match (exclusive)
 };
 
 /**

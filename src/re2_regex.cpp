@@ -26,8 +26,8 @@ std::vector<Match> Re2Regex::find_all(const std::string& text) const {
   const char* base = input.data();
 
   while (RE2::FindAndConsume(&input, *regex_, &piece)) {
-    size_t pos = piece.data() - base;
-    result.push_back({std::string(piece.data(), piece.size()), pos});
+    size_t start = piece.data() - base;
+    result.push_back({start, start + piece.size()});
   }
 
   return result;
