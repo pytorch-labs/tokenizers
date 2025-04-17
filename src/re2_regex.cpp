@@ -33,12 +33,4 @@ std::vector<Match> Re2Regex::find_all(const std::string& text) const {
   return result;
 }
 
-bool Re2Regex::ok() const {
-  return regex_ && regex_->ok();
-}
-
-const re2::RE2* Re2Regex::rawRegex() const {
-  return regex_.get();
-}
-
 } // namespace tokenizers

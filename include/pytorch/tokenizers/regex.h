@@ -35,13 +35,6 @@ class IRegex {
    * @return A vector of strings containing all matched substrings.
    */
   virtual std::vector<Match> find_all(const std::string& text) const = 0;
-
-  /**
-   * @brief Check if the regex pattern was compiled successfully.
-   *
-   * @return true if the pattern is valid and ready to use, false otherwise.
-   */
-  virtual bool ok() const = 0;
 };
 
 /**
