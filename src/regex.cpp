@@ -26,16 +26,15 @@ Result<std::unique_ptr<IRegex>> create_regex(const std::string& pattern) {
   // Try RE2 first
   auto re2 = std::make_unique<Re2Regex>("(" + pattern + ")");
 
-  if (re2->ok()) {
+  if (re2->regex_->ok()) {
     return static_cast<std::unique_ptr<IRegex>>(std::move(re2));
   }
 
-  const re2::RE2* raw = re2->rawRegex();
-  if (raw && raw->error_code() == re2::RE2::ErrorBadPerlOp) {
+  if (re2->regex_->error_code() == re2::RE2::ErrorBadPerlOp) {
     // RE2 doesn't support some Perl features, try PCRE2
     auto pcre2 = std::make_unique<Pcre2Regex>("(" + pattern + ")");
 
-    if (pcre2->ok()) {
+    if (pcre2->regex_ != nullptr && pcre2->match_data_ != nullptr) {
       std::cout
           << "RE2 is unable to support things such as negative lookaheads in "
           << pattern << ", using PCRE2 instead." << std::endl;
@@ -54,7 +53,7 @@ Result<std::unique_ptr<IRegex>> create_regex(const std::string& pattern) {
     }
   } else {
     std::cerr << "RE2 failed to compile pattern: " << pattern << "\n";
-    std::cerr << "Error: " << (raw ? raw->error() : "unknown") << std::endl;
+    std::cerr << "Error: " << (re2->regex_->error()) << std::endl;
     return tokenizers::Error::LoadFailure;
   }
 }

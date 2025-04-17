@@ -34,16 +34,6 @@ class Re2Regex : public IRegex {
    */
   virtual std::vector<Match> find_all(const std::string& text) const override;
 
-  /**
-   * @brief Check if RE2 compiled the pattern successfully.
-   */
-  bool ok() const override;
-
-  /**
-   * @brief Expose internal RE2 pointer to the factory if needed.
-   */
-  const re2::RE2* rawRegex() const;
-
  private:
   std::unique_ptr<re2::RE2> regex_;
 
