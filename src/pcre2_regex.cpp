@@ -56,7 +56,7 @@ Pcre2Regex::~Pcre2Regex() {
   }
 }
 
-std::vector<Match> Pcre2Regex::findAll(const std::string& text) const {
+std::vector<Match> Pcre2Regex::find_all(const std::string& text) const {
   std::vector<Match> result;
 
   if (!is_valid_ || !regex_ || !match_data_) {

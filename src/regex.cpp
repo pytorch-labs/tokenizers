@@ -22,7 +22,7 @@ namespace tokenizers {
  *        Falls back to PCRE2 if RE2 rejects the pattern, then to std::regex if
  * PCRE2 fails.
  */
-Result<std::unique_ptr<IRegex>> createRegex(const std::string& pattern) {
+Result<std::unique_ptr<IRegex>> create_regex(const std::string& pattern) {
   // Try RE2 first
   auto re2 = std::make_unique<Re2Regex>("(" + pattern + ")");
 

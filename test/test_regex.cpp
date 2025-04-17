@@ -8,11 +8,11 @@ using namespace tokenizers;
 
 // Test basic functionality
 TEST(RegexTest, BasicMatching) {
-  auto regex = TK_UNWRAP_THROW(createRegex("\\w+"));
+  auto regex = TK_UNWRAP_THROW(create_regex("\\w+"));
   ASSERT_TRUE(regex->ok());
 
   std::string text = "Hello world";
-  auto matches = regex->findAll(text);
+  auto matches = regex->find_all(text);
   ASSERT_EQ(matches.size(), 2);
   EXPECT_EQ(matches[0].text, "Hello");
   EXPECT_EQ(matches[0].position, 0);
@@ -28,11 +28,11 @@ TEST(RegexTest, Pcre2Specific) {
   ASSERT_FALSE(re2_regex.ok());
 
   // Now verify that the factory function fallsback on a PCRE2 regex
-  auto regex = TK_UNWRAP_THROW(createRegex(pattern));
+  auto regex = TK_UNWRAP_THROW(create_regex(pattern));
   ASSERT_TRUE(regex->ok());
 
   std::string text = "user@example.com";
-  auto matches = regex->findAll(text);
+  auto matches = regex->find_all(text);
   ASSERT_EQ(matches.size(), 1);
   EXPECT_EQ(matches[0].text, "example");
   EXPECT_EQ(matches[0].position, 5);
@@ -50,12 +50,12 @@ TEST(RegexTest, ComplexPatternWithNegativeLookahead) {
   ASSERT_FALSE(re2_regex.ok());
 
   // Now verify that the factory function fallsback on a PCRE2 regex
-  auto regex = TK_UNWRAP_THROW(createRegex(complex_pattern));
+  auto regex = TK_UNWRAP_THROW(create_regex(complex_pattern));
   ASSERT_TRUE(regex->ok());
 
   // Test the pattern with some sample text
   std::string text = "Hello's world\n  test";
-  auto matches = regex->findAll(text);
+  auto matches = regex->find_all(text);
 
   // We expect to match:
   // 1. "Hello" (word)

@@ -139,7 +139,7 @@ BPETokenizerBase::split_with_allowed_special_token_(
     return std::make_pair(std::nullopt, input.substr(offset));
   }
 
-  auto matches = special_token_regex_->findAll(input.substr(offset));
+  auto matches = special_token_regex_->find_all(input.substr(offset));
 
   for (const auto& m : matches) {
     if (allowed_special.tryGetInteger(m.text).has_value()) {

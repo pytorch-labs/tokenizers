@@ -32,7 +32,7 @@ class Re2Regex : public IRegex {
   /**
    * @brief Return all non-overlapping matches found in the input string.
    */
-  virtual std::vector<Match> findAll(const std::string& text) const override;
+  virtual std::vector<Match> find_all(const std::string& text) const override;
 
   /**
    * @brief Check if RE2 compiled the pattern successfully.
@@ -47,7 +47,7 @@ class Re2Regex : public IRegex {
  private:
   std::unique_ptr<re2::RE2> regex_;
 
-  friend Result<std::unique_ptr<IRegex>> createRegex(
+  friend Result<std::unique_ptr<IRegex>> create_regex(
       const std::string& pattern);
 };
 

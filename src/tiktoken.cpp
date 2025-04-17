@@ -44,7 +44,7 @@ namespace {
 static Result<std::unique_ptr<IRegex>> _create_regex(
     const std::string& pattern) {
   assert(!pattern.empty());
-  return createRegex(pattern);
+  return create_regex(pattern);
 }
 
 static Result<std::unique_ptr<IRegex>> _build_special_token_regex(
@@ -117,7 +117,7 @@ Error Tiktoken::_encode(
     uint64_t& last_piece_token_len) const {
   std::string piece;
   assert(_regex);
-  for (const auto& match : _regex->findAll(input)) {
+  for (const auto& match : _regex->find_all(input)) {
     const auto result = token_map_->tryGetInteger(match.text);
     if (result) {
       last_piece_token_len = 1;
