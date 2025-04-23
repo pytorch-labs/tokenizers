@@ -26,14 +26,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-attributes")
 
 set(ABSL_ENABLE_INSTALL ON)
 set(ABSL_PROPAGATE_CXX_STD ON)
+
 set(_pic_flag ${CMAKE_POSITION_INDEPENDENT_CODE})
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/abseil-cpp)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/re2)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/sentencepiece)
 
 # Configure PCRE2
-if(SUPPORT_REGEX_LOOKAHEAD)
+if(SUPPORT_REGEX_LOOKAHEAD OR TOKENIZERS_BUILD_TEST)
     set(PCRE2_BUILD_PCRE2_8 ON)
     set(PCRE2_BUILD_PCRE2_16 OFF)
     set(PCRE2_BUILD_PCRE2_32 OFF)
@@ -49,10 +51,22 @@ endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE ${_pic_flag})
 
 file(GLOB tokenizers_source_files ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-if(NOT SUPPORT_REGEX_LOOKAHEAD)
-    list(REMOVE_ITEM
+set(tokenizers_source_files
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/bpe_tokenizer_base.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/hf_tokenizer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/llama2c_tokenizer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/pre_tokenizer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/re2_regex.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/regex.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tiktoken.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/token_decoder.cpp
+)
+if(SUPPORT_REGEX_LOOKAHEAD OR TOKENIZERS_BUILD_TEST)
+    list(APPEND
         tokenizers_source_files
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/pcre2_regex.cpp)
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/pcre2_regex.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/std_regex.cpp)
 endif()
 file(GLOB unicode_source_files
      ${CMAKE_CURRENT_SOURCE_DIR}/third-party/llama.cpp-unicode/src/*.cpp)
@@ -70,7 +84,7 @@ target_include_directories(
          ${CMAKE_CURRENT_SOURCE_DIR}/third-party/llama.cpp-unicode/include)
 target_link_libraries(tokenizers PUBLIC sentencepiece-static re2::re2)
 
-if(SUPPORT_REGEX_LOOKAHEAD)
+if(SUPPORT_REGEX_LOOKAHEAD OR TOKENIZERS_BUILD_TEST)
     target_include_directories(tokenizers
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/third-party/pcre2/src)
