@@ -30,6 +30,7 @@ Result<std::unique_ptr<IRegex>> create_regex(const std::string& pattern) {
     return static_cast<std::unique_ptr<IRegex>>(std::move(re2));
   }
 
+#ifdef INCLUDE_REGEX_FALLBACK
   if (re2->regex_->error_code() == re2::RE2::ErrorBadPerlOp) {
     // RE2 doesn't support some Perl features, try PCRE2
     auto pcre2 = std::make_unique<Pcre2Regex>("(" + pattern + ")");
@@ -56,6 +57,11 @@ Result<std::unique_ptr<IRegex>> create_regex(const std::string& pattern) {
     std::cerr << "Error: " << (re2->regex_->error()) << std::endl;
     return tokenizers::Error::LoadFailure;
   }
+#else
+  std::cerr << "RE2 failed to compile pattern: " << pattern << "\n";
+  std::cerr << "Error: " << (re2->regex_->error()) << std::endl;
+  return tokenizers::Error::LoadFailure;
+#endif
 }
 
 } // namespace tokenizers
