@@ -60,18 +60,18 @@ def define_common_targets():
             ],
         )
 
-        # runtime.genrule(
-        #     name = "config_h_generic",
-        #     srcs = ["pcre2/src/config.h.generic"],
-        #     cmd = "cp $SRCS $OUT",
-        #     out = "pcre2/src/config.h",
-        # )
-        # runtime.genrule(
-        #     name = "pcre2_h_generic",
-        #     srcs = ["pcre2/src/pcre2.h.generic"],
-        #     cmd = "cp $SRCS $OUT",
-        #     out = "pcre2/src/pcre2.h",
-        # )
+        runtime.genrule(
+            name = "config_h_generic",
+            srcs = ["pcre2/src/config.h.generic"],
+            cmd = "cp $SRCS $OUT",
+            out = "pcre2/src/config.h",
+        )
+        runtime.genrule(
+            name = "pcre2_h_generic",
+            srcs = ["pcre2/src/pcre2.h.generic"],
+            cmd = "cp $SRCS $OUT",
+            out = "pcre2/src/pcre2.h",
+        )
         runtime.genrule(
             name = "pcre2_chartables_c",
             srcs = ["pcre2/src/pcre2_chartables.c.dist"],
@@ -113,8 +113,8 @@ def define_common_targets():
                 "pcre2/src/pcre2_xclass.c",
                 ":pcre2_chartables_c",
             ],
-            exported_headers = {"pcre2.h": "pcre2/src/pcre2.h.generic"},
-            headers = {"config.h": "pcre2/src/config.h.generic"},
+            exported_headers = {"pcre2.h": ":pcre2_h_generic"},
+            headers = {"config.h": ":config_h_generic"},
             # Preprocessor flags from https://github.com/PCRE2Project/pcre2/blob/2e03e323339ab692640626f02f8d8d6f95bff9c6/BUILD.bazel#L23.
             preprocessor_flags = [
                 "-DHAVE_CONFIG_H",
