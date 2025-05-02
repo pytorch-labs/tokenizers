@@ -111,17 +111,13 @@ static Result<std::unique_ptr<IRegex>> build_special_token_regex(
   std::string special_pattern;
   const std::size_t count = special_token_map.size();
 
-  std::cout << "iterating" << std::endl;
   for (std::size_t i = 0; i < count; ++i) {
-    std::cout << "i: " << i << "/" << count << std::endl;
     const auto& [token, _] = special_token_map.getElement(i);
-    std::cout << "token: " << token << std::endl;
     if (!special_pattern.empty()) {
       special_pattern += "|";
     }
     special_pattern += re2::RE2::QuoteMeta(std::string(token));
   }
-  std::cout << "special pattern: " << special_pattern << std::endl;
 
   if (special_pattern.empty()) {
     return static_cast<std::unique_ptr<IRegex>>(nullptr);
