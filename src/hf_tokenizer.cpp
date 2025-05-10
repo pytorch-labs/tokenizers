@@ -31,7 +31,7 @@ namespace tokenizers {
 Error HFTokenizer::load(const std::string& path) {
   // If this is a directory, look for tokenizer.json and tokenizer_config.json
   std::string model_json = path;
-  std::string model_config_json = "";
+  std::string model_config_json;
   if (fs::is_directory(path)) {
     const fs::path root(path);
     model_json = root / "tokenizer.json";
