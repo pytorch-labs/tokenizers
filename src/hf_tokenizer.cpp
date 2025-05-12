@@ -71,7 +71,8 @@ Error HFTokenizer::load(const std::string& path) {
         [](const auto& it) -> std::uint64_t { return it.at("id"); }));
 
     // Create special token regex to help later with encoding.
-    special_token_regex_ = TK_UNWRAP(detail::build_special_token_regex(special_token_map));
+    special_token_regex_ =
+        TK_UNWRAP(detail::build_special_token_regex(special_token_map));
 
     // Store for future use.
     special_token_map_.emplace(std::move(special_token_map));
