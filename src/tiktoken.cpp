@@ -46,7 +46,6 @@ static Result<std::unique_ptr<IRegex>> _create_regex(
   return create_regex(pattern);
 }
 
-
 static Result<std::pair<std::string, uint64_t>> _parse(
     const std::string& line) {
   // Tiktoken format
@@ -138,7 +137,7 @@ Error Tiktoken::load(const std::string& path) {
 
   _regex = TK_UNWRAP(_create_regex(_pattern));
   special_token_regex_ =
-    TK_UNWRAP(detail::build_special_token_regex(TokenMap(special_token_map)));
+      TK_UNWRAP(detail::build_special_token_regex(TokenMap(special_token_map)));
 
   // initialize vocab_size, bos_tok, eos_tok
   vocab_size_ = token_map_->size() + special_token_map_->size();
