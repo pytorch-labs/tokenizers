@@ -65,10 +65,11 @@ Error HFTokenizer::load(const std::string& path) {
   try {
     std::vector<std::pair<std::string, std::uint64_t>> special_token_pairs;
     const auto& special_tokens = parsed_json.at("added_tokens");
-    auto special_token_map = TK_UNWRAP(detail::buildTokenMap(
-        special_tokens,
-        [](const auto& it) -> std::string { return it.at("content"); },
-        [](const auto& it) -> std::uint64_t { return it.at("id"); }));
+    auto special_token_map = TK_UNWRAP(
+        detail::buildTokenMap(
+            special_tokens,
+            [](const auto& it) -> std::string { return it.at("content"); },
+            [](const auto& it) -> std::uint64_t { return it.at("id"); }));
 
     // Create special token regex to help later with encoding.
     special_token_regex_ =
@@ -107,9 +108,12 @@ Error HFTokenizer::load(const std::string& path) {
   // Set up the pre-tokenizer
   try {
     std::cout << "Setting up pretokenizer..." << std::endl;
-    _pretokenizer = PreTokenizerConfig()
-                        .parse_json(parsed_json.at("pre_tokenizer"))
-                        .create();
+    auto pretokenizer = PreTokenizerConfig()
+                            .parse_json(parsed_json.at("pre_tokenizer"))
+                            .create();
+    if (pretokenizer) {
+      _pretokenizer = *pretokenizer;
+    }
     std::cout << "Pretokenizer set up" << std::endl;
   } catch (const json::out_of_range& e) {
     fprintf(stderr, "Could not parse pre_tokenizer: %s\n", e.what());
@@ -249,17 +253,25 @@ Error HFTokenizer::_encode(
     const std::string& input,
     std::vector<uint64_t>& ret,
     uint64_t& last_piece_token_len) const {
-  for (const auto& piece : _pretokenizer->pre_tokenize(input)) {
+  auto encode_piece = [&](const std::string& piece) {
     const auto result = token_map_->tryGetInteger(piece);
     if (result) {
       last_piece_token_len = 1;
       ret.push_back(*result);
-      continue;
+    } else {
+      auto tokens = TK_UNWRAP(byte_pair_encode_(piece, *token_map_));
+      last_piece_token_len = tokens.size();
+      ret.insert(ret.end(), tokens.begin(), tokens.end());
     }
-    auto tokens = TK_UNWRAP(byte_pair_encode_(piece, *token_map_));
+  };
 
-    last_piece_token_len = tokens.size();
-    ret.insert(ret.end(), tokens.begin(), tokens.end());
+  if (_pretokenizer) {
+    for (const auto& piece : (*_pretokenizer)->pre_tokenize(input)) {
+      encode_piece(piece);
+    }
+  } else {
+    // If no pretokenizer, treat the entire input as a single piece
+    encode_piece(input);
   }
   return Error::Ok;
 }

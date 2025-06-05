@@ -122,32 +122,36 @@ class PreTokenizerConfigTest : public ::testing::Test {};
 
 TEST_F(PreTokenizerConfigTest, AllTypesSuccess) {
   // Regex
-  PreTokenizerConfig("Split").set_pattern(R"(o)").create();
+  EXPECT_TRUE(PreTokenizerConfig("Split").set_pattern(R"(o)").create());
 
   // Digits
-  PreTokenizerConfig("Digits").create();
-  PreTokenizerConfig("Digits").set_individual_digits(true).create();
-  PreTokenizerConfig("Digits").set_individual_digits(false).create();
+  EXPECT_TRUE(PreTokenizerConfig("Digits").create());
+  EXPECT_TRUE(
+      PreTokenizerConfig("Digits").set_individual_digits(true).create());
+  EXPECT_TRUE(
+      PreTokenizerConfig("Digits").set_individual_digits(false).create());
 
   // ByteLevel
-  PreTokenizerConfig("ByteLevel").create();
-  PreTokenizerConfig("ByteLevel").set_pattern(R"(o)").create();
-  PreTokenizerConfig("ByteLevel").set_add_prefix_space(true).create();
-  PreTokenizerConfig("ByteLevel")
-      .set_add_prefix_space(false)
-      .set_pattern(R"(o)")
-      .create();
+  EXPECT_TRUE(PreTokenizerConfig("ByteLevel").create());
+  EXPECT_TRUE(PreTokenizerConfig("ByteLevel").set_pattern(R"(o)").create());
+  EXPECT_TRUE(
+      PreTokenizerConfig("ByteLevel").set_add_prefix_space(true).create());
+  EXPECT_TRUE(PreTokenizerConfig("ByteLevel")
+                  .set_add_prefix_space(false)
+                  .set_pattern(R"(o)")
+                  .create());
 
   // Sequence
-  PreTokenizerConfig("Sequence")
-      .set_pretokenizers(
-          {PreTokenizerConfig("Digits"), PreTokenizerConfig("ByteLevel")})
-      .create();
+  EXPECT_TRUE(
+      PreTokenizerConfig("Sequence")
+          .set_pretokenizers(
+              {PreTokenizerConfig("Digits"), PreTokenizerConfig("ByteLevel")})
+          .create());
 }
 
 TEST_F(PreTokenizerConfigTest, AllTypesFailureCases) {
   // Regex
-  EXPECT_THROW(PreTokenizerConfig("Split").create(), std::runtime_error);
+  EXPECT_FALSE(PreTokenizerConfig("Split").create());
 
   // Sequence
   EXPECT_THROW(PreTokenizerConfig("Sequence").create(), std::runtime_error);
@@ -167,20 +171,21 @@ TEST_F(PreTokenizerConfigTest, AllTypesFailureCases) {
 TEST_F(PreTokenizerConfigTest, ParseJson) {
   PreTokenizerConfig config;
   const auto ptok = config
-                        .parse_json(json{
-                            {"type", "Sequence"},
-                            {"pretokenizers",
-                             json{
+                        .parse_json(
+                            json{
+                                {"type", "Sequence"},
+                                {"pretokenizers",
                                  json{
-                                     {"type", "Digits"},
-                                     {"individual_digits", true},
-                                 },
-                                 json{
-                                     {"type", "ByteLevel"},
-                                     {"add_prefix_space", false},
-                                 },
-                             }},
-                        })
+                                     json{
+                                         {"type", "Digits"},
+                                         {"individual_digits", true},
+                                     },
+                                     json{
+                                         {"type", "ByteLevel"},
+                                         {"add_prefix_space", false},
+                                     },
+                                 }},
+                            })
                         .create();
   assert_split_match(
       *ptok,
@@ -203,9 +208,10 @@ TEST_F(PreTokenizerConfigTest, ParseJson) {
 TEST_F(PreTokenizerConfigTest, ParseJsonOptionalKey) {
   PreTokenizerConfig config;
   const auto ptok = config
-                        .parse_json(json{
-                            {"type", "Digits"},
-                        })
+                        .parse_json(
+                            json{
+                                {"type", "Digits"},
+                            })
                         .create();
   assert_split_match(
       *ptok,
@@ -217,12 +223,13 @@ TEST_F(PreTokenizerConfigTest, Split) {
   PreTokenizerConfig config;
   const auto ptok =
       config
-          .parse_json(json{
-              {"type", "Split"},
-              {"pattern",
-               {{"Regex",
-                 R"((?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+)"}}},
-          })
+          .parse_json(
+              json{
+                  {"type", "Split"},
+                  {"pattern",
+                   {{"Regex",
+                     R"((?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+)"}}},
+              })
           .create();
   assert_split_match(*ptok, "Hello World", {"Hello", " World"});
 }

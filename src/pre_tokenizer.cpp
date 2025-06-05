@@ -28,14 +28,13 @@ namespace tokenizers {
 PreTokenizerConfig::PreTokenizerConfig(std::string type)
     : type(std::move(type)) {}
 
-PreTokenizer::Ptr PreTokenizerConfig::create() const {
+std::optional<PreTokenizer::Ptr> PreTokenizerConfig::create() const {
   // NOTE: These types must line up with the type strings found in the
   //  tokenizers library
   //  https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/pre_tokenizers/mod.rs#L73
   if (type == "Split") {
     if (!pattern) {
-      throw std::runtime_error(
-          "Missing pattern for PreTokenizer of type Split");
+      return std::nullopt; // Return nullopt if no pattern is provided
     }
     return PreTokenizer::Ptr(new RegexPreTokenizer(*pattern));
   }
@@ -68,7 +67,14 @@ PreTokenizer::Ptr PreTokenizerConfig::create() const {
         pretokenizers->begin(),
         pretokenizers->end(),
         std::back_inserter(pretoks),
-        [](const PreTokenizerConfig& cfg) { return cfg.create(); });
+        [](const PreTokenizerConfig& cfg) {
+          auto result = cfg.create();
+          if (!result) {
+            throw std::runtime_error(
+                "Failed to create pretokenizer in sequence");
+          }
+          return *result;
+        });
     return PreTokenizer::Ptr(new SequencePreTokenizer(pretoks));
   }
   throw std::runtime_error("Unsupported PreTokenizer type: " + type);

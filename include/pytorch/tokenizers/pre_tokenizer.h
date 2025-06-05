@@ -121,7 +121,7 @@ class PreTokenizerConfig {
   /**
    * Construct the pre tokenizer instance from the member data
    */
-  PreTokenizer::Ptr create() const;
+  std::optional<PreTokenizer::Ptr> create() const;
 
   /**
    * Populate from a json config file
