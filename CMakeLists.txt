@@ -85,7 +85,8 @@ if(SUPPORT_REGEX_LOOKAHEAD OR TOKENIZERS_BUILD_TEST)
   target_include_directories(
     regex_lookahead PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
                            ${CMAKE_CURRENT_SOURCE_DIR}/third-party/pcre2/src)
-  target_link_options_shared_lib(regex_lookahead)
+			 target_link_options_shared_lib(regex_lookahead)
+  target_link_libraries(tokenizers PUBLIC regex_lookahead)
 endif()
 
 # Build test
