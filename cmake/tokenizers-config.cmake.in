@@ -21,7 +21,7 @@ endif()
 include("${CMAKE_CURRENT_LIST_DIR}/tokenizers-targets.cmake")
 
 # Set the include directories
-set_and_check(TOKENIZERS_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
+set_and_check(TOKENIZERS_INCLUDE_DIRS "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
 
 # Set the libraries
 set(TOKENIZERS_LIBRARIES tokenizers::tokenizers)

@@ -21,7 +21,10 @@ option(TOKENIZERS_BUILD_TOOLS "Build tools" OFF)
 option(SUPPORT_REGEX_LOOKAHEAD
        "Support regex lookahead patterns (requires PCRE2)" OFF)
 
+# Include CMakePackageConfigHelpers for configure_package_config_file
+include(CMakePackageConfigHelpers)
 include(Utils.cmake)
+
 # Ignore weak attribute warning
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-attributes")
 
@@ -163,10 +166,11 @@ install(
 )
 
 # Generate and install the config file
-configure_file(
+configure_package_config_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/tokenizers-config.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/tokenizers-config.cmake
-  @ONLY
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/tokenizers
+  PATH_VARS CMAKE_INSTALL_INCLUDEDIR
 )
 
 install(
