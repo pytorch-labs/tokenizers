@@ -57,12 +57,12 @@ add_library(tokenizers STATIC ${tokenizers_source_files}
 # Using abseil from sentencepiece/third_party
 target_include_directories(
   tokenizers
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
-         ${CMAKE_CURRENT_SOURCE_DIR}/third-party/sentencepiece
-         ${CMAKE_CURRENT_SOURCE_DIR}/third-party/sentencepiece/src
-         ${CMAKE_CURRENT_SOURCE_DIR}/third-party/re2
-         ${CMAKE_CURRENT_SOURCE_DIR}/third-party/json/single_include
-         ${CMAKE_CURRENT_SOURCE_DIR}/third-party/llama.cpp-unicode/include)
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/sentencepiece>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/sentencepiece/src>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/re2>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/json/single_include>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/llama.cpp-unicode/include>)
 target_link_libraries(tokenizers PUBLIC sentencepiece-static re2::re2)
 
 if(SUPPORT_REGEX_LOOKAHEAD OR TOKENIZERS_BUILD_TEST)
@@ -128,3 +128,48 @@ endif()
 if(TOKENIZERS_BUILD_TOOLS)
   add_subdirectory(examples/tokenize_tool)
 endif()
+
+# Installation rules
+include(GNUInstallDirs)
+
+# Install the library and its dependencies
+install(
+  TARGETS tokenizers re2 sentencepiece-static
+  EXPORT tokenizers-targets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+# Install header files
+install(
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  FILES_MATCHING PATTERN "*.h"
+)
+
+install(
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third-party/json/single_include/
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  FILES_MATCHING PATTERN "*.hpp"
+)
+
+# Install the CMake config files
+install(
+  EXPORT tokenizers-targets
+  FILE tokenizers-targets.cmake
+  NAMESPACE tokenizers::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/tokenizers
+)
+
+# Generate and install the config file
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/tokenizers-config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/tokenizers-config.cmake
+  @ONLY
+)
+
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/tokenizers-config.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/tokenizers
+)
