@@ -23,8 +23,18 @@ include("${CMAKE_CURRENT_LIST_DIR}/tokenizers-targets.cmake")
 # Set the include directories
 set_and_check(TOKENIZERS_INCLUDE_DIRS "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
 
-# Set the libraries
+# Add --whole-archive linker flag for tokenizers library
+if(APPLE)
+  set(TOKENIZERS_LINK_OPTIONS "SHELL:-force_load,$<TARGET_FILE:tokenizers::regex_lookahead>")
+elseif(MSVC)
+  set(TOKENIZERS_LINK_OPTIONS "SHELL:/WHOLEARCHIVE:$<TARGET_FILE:tokenizers::regex_lookahead>")
+else()
+  set(TOKENIZERS_LINK_OPTIONS "SHELL:LINKER:--whole-archive $<TARGET_FILE:tokenizers::regex_lookahead> LINKER:--no-whole-archive")
+endif()
+
+# Set the libraries and link options
 set(TOKENIZERS_LIBRARIES tokenizers::tokenizers)
+set_property(TARGET tokenizers::tokenizers APPEND PROPERTY INTERFACE_LINK_OPTIONS "${TOKENIZERS_LINK_OPTIONS}")
 
 # Check if the library was found
 check_required_components(tokenizers)

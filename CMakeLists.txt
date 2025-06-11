@@ -68,7 +68,8 @@ target_include_directories(
          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/llama.cpp-unicode/include>)
 target_link_libraries(tokenizers PUBLIC sentencepiece-static re2::re2)
 
-if(SUPPORT_REGEX_LOOKAHEAD OR TOKENIZERS_BUILD_TEST)
+if(SUPPORT_REGEX_LOOKAHEAD)
+  set(PCRE2_STATIC_PIC ON)
   set(PCRE2_BUILD_PCRE2_8 ON)
   set(PCRE2_BUILD_PCRE2_16 OFF)
   set(PCRE2_BUILD_PCRE2_32 OFF)
@@ -79,6 +80,11 @@ if(SUPPORT_REGEX_LOOKAHEAD OR TOKENIZERS_BUILD_TEST)
   set(PCRE2_BUILD_DOCS OFF)
   set(PCRE2_BUILD_LIBPCRE2_PDB OFF)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/pcre2)
+
+  # Set the INTERFACE_INCLUDE_DIRECTORIES property for pcre2-8-static
+  set_target_properties(pcre2-8-static PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/pcre2/src>
+  )
   add_library(
     regex_lookahead STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pcre2_regex.cpp
@@ -86,45 +92,17 @@ if(SUPPORT_REGEX_LOOKAHEAD OR TOKENIZERS_BUILD_TEST)
     ${CMAKE_CURRENT_SOURCE_DIR}/src/std_regex.cpp)
   target_link_libraries(regex_lookahead PUBLIC pcre2-8)
   target_include_directories(
-    regex_lookahead PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
-                           ${CMAKE_CURRENT_SOURCE_DIR}/third-party/pcre2/src)
-			 target_link_options_shared_lib(regex_lookahead)
+    regex_lookahead PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/pcre2/src>)
+  target_link_options_shared_lib(regex_lookahead)
   target_link_libraries(tokenizers PUBLIC regex_lookahead)
-endif()
-
-# Build test
-if(TOKENIZERS_BUILD_TEST)
-  enable_testing()
-  include(FetchContent)
-  # CMAKE
-  FetchContent_Declare(
-    googletest
-    # Specify the commit you depend on and update it regularly.
-    URL https://github.com/google/googletest/archive/5376968f6948923e2411081fd9372e71a59d8e77.zip
+  install(
+    TARGETS regex_lookahead pcre2-8-static
+    EXPORT tokenizers-targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   )
-  set(gtest_force_shared_crt
-      ON
-      CACHE BOOL "" FORCE)
-  FetchContent_MakeAvailable(googletest)
-
-  file(GLOB test_source_files ${CMAKE_CURRENT_SOURCE_DIR}/test/test_*.cpp)
-
-  set(test_env "RESOURCES_PATH=${CMAKE_CURRENT_SOURCE_DIR}/test/resources")
-  foreach(test_source_file ${test_source_files})
-    get_filename_component(test_name ${test_source_file} NAME_WE)
-    message(STATUS "Configuring unit test ${test_name}")
-    add_executable(${test_name} ${test_source_file})
-    target_include_directories(
-      ${test_name}
-      PRIVATE GTEST_INCLUDE_PATH
-              ${CMAKE_CURRENT_SOURCE_DIR}/include
-              ${CMAKE_CURRENT_SOURCE_DIR}/third-party/sentencepiece
-              ${CMAKE_CURRENT_SOURCE_DIR}/third-party/re2
-              ${CMAKE_CURRENT_SOURCE_DIR}/third-party/json/single_include)
-    target_link_libraries(${test_name} gtest_main GTest::gmock tokenizers)
-    add_test(${test_name} "${test_name}")
-    set_tests_properties(${test_name} PROPERTIES ENVIRONMENT ${test_env})
-  endforeach()
 endif()
 
 # Build tools
