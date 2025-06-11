@@ -19,7 +19,8 @@ project(Tokenizers)
 option(TOKENIZERS_BUILD_TEST "Build tests" OFF)
 option(TOKENIZERS_BUILD_TOOLS "Build tools" OFF)
 option(SUPPORT_REGEX_LOOKAHEAD
-       "Support regex lookahead patterns (requires PCRE2)" OFF)
+       "Support regex lookahead patterns (requires PCRE2)" OFF
+)
 
 # Include CMakePackageConfigHelpers for configure_package_config_file
 include(CMakePackageConfigHelpers)
@@ -50,22 +51,27 @@ set(tokenizers_source_files
     ${CMAKE_CURRENT_SOURCE_DIR}/src/regex.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tiktoken.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/token_decoder.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/token_decoder.cpp
+)
 
 file(GLOB unicode_source_files
-     ${CMAKE_CURRENT_SOURCE_DIR}/third-party/llama.cpp-unicode/src/*.cpp)
-add_library(tokenizers STATIC ${tokenizers_source_files}
-                              ${unicode_source_files})
+     ${CMAKE_CURRENT_SOURCE_DIR}/third-party/llama.cpp-unicode/src/*.cpp
+)
+add_library(
+  tokenizers STATIC ${tokenizers_source_files} ${unicode_source_files}
+)
 
 # Using abseil from sentencepiece/third_party
 target_include_directories(
   tokenizers
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/sentencepiece>
-         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/sentencepiece/src>
-         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/re2>
-         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/json/single_include>
-         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/llama.cpp-unicode/include>)
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/sentencepiece>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/sentencepiece/src>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/re2>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/json/single_include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/llama.cpp-unicode/include>
+)
 target_link_libraries(tokenizers PUBLIC sentencepiece-static re2::re2)
 
 if(SUPPORT_REGEX_LOOKAHEAD)
@@ -82,18 +88,24 @@ if(SUPPORT_REGEX_LOOKAHEAD)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/pcre2)
 
   # Set the INTERFACE_INCLUDE_DIRECTORIES property for pcre2-8-static
-  set_target_properties(pcre2-8-static PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/pcre2/src>
+  set_target_properties(
+    pcre2-8-static
+    PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/pcre2/src>
   )
   add_library(
     regex_lookahead STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pcre2_regex.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/regex_lookahead.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/std_regex.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/std_regex.cpp
+  )
   target_link_libraries(regex_lookahead PUBLIC pcre2-8)
   target_include_directories(
-    regex_lookahead PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/pcre2/src>)
+    regex_lookahead
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/pcre2/src>
+  )
   target_link_options_shared_lib(regex_lookahead)
   target_link_libraries(tokenizers PUBLIC regex_lookahead)
   install(
@@ -126,13 +138,15 @@ install(
 install(
   DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  FILES_MATCHING PATTERN "*.h"
+  FILES_MATCHING
+  PATTERN "*.h"
 )
 
 install(
   DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third-party/json/single_include/
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  FILES_MATCHING PATTERN "*.hpp"
+  FILES_MATCHING
+  PATTERN "*.hpp"
 )
 
 # Install the CMake config files
@@ -151,7 +165,6 @@ configure_package_config_file(
   PATH_VARS CMAKE_INSTALL_INCLUDEDIR
 )
 
-install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/tokenizers-config.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/tokenizers
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tokenizers-config.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/tokenizers
 )

@@ -13,9 +13,7 @@ include(FindPackageHandleStandardArgs)
 include(FetchContent)
 include(ExternalProject)
 FetchContent_Declare(
-  tokenizers
-  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..
-  BUILD_ALWAYS ON
+  tokenizers SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. BUILD_ALWAYS ON
 )
 set(SUPPORT_REGEX_LOOKAHEAD ON)
 FetchContent_MakeAvailable(tokenizers)
@@ -29,7 +27,8 @@ FetchContent_Declare(
 )
 set(gtest_force_shared_crt
     ON
-    CACHE BOOL "" FORCE)
+    CACHE BOOL "" FORCE
+)
 FetchContent_MakeAvailable(googletest)
 
 file(GLOB test_source_files test_*.cpp)
@@ -41,9 +40,8 @@ foreach(test_source_file ${test_source_files})
   message(STATUS "Configuring unit test ${test_name}")
   add_executable(${test_name} ${test_source_file})
   target_include_directories(
-    ${test_name}
-    PRIVATE GTEST_INCLUDE_PATH
-            ${TOKENIZERS_INCLUDE_DIRS})
+    ${test_name} PRIVATE GTEST_INCLUDE_PATH ${TOKENIZERS_INCLUDE_DIRS}
+  )
   target_link_libraries(${test_name} PUBLIC gtest_main GTest::gmock tokenizers)
   add_test(${test_name} "${test_name}")
   set_tests_properties(${test_name} PROPERTIES ENVIRONMENT ${test_env})
