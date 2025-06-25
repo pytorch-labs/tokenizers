@@ -13,6 +13,7 @@
 #pragma once
 
 // Standard
+#include <optional>
 #include <string>
 
 // Local
@@ -46,7 +47,7 @@ class HFTokenizer : public detail::BPETokenizerBase {
 
   void _decode(const std::string& input, std::string& ret) const override;
 
-  PreTokenizer::Ptr _pretokenizer;
+  std::optional<PreTokenizer::Ptr> _pretokenizer;
   TokenDecoder::Ptr _decoder;
 };
 
