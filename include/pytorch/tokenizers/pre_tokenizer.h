@@ -105,21 +105,6 @@ class PreTokenizerConfig {
   CONFIG_MEMBER(bool, add_prefix_space)
 
   /**
-   * Used by RegexPreTokenizer
-   */
-  CONFIG_MEMBER(bool, is_delimiter)
-
-  /**
-   * Used by RegexPreTokenizer - Split behavior
-   */
-  CONFIG_MEMBER(std::string, behavior)
-
-  /**
-   * Used by RegexPreTokenizer - Split invert flag
-   */
-  CONFIG_MEMBER(bool, invert)
-
-  /**
    * Used by: SequencePreTokenizer
    */
   CONFIG_MEMBER(std::vector<PreTokenizerConfig>, pretokenizers)
@@ -156,29 +141,8 @@ class PreTokenizerConfig {
 
 class RegexPreTokenizer : public PreTokenizer {
  public:
-  /**
-   * @param pattern: The regex pattern to use for token splitting
-   * @param is_delimiter: Whether treat `pattern` as delimiter characters, or
-   * use `pattern` as a regex pattern.
-   * @param behavior: Split behavior (only "MergedWithPrevious" supported)
-   * For example:
-   * "pre_tokenizer": {
-   *   "type": "Split",
-   *   "pattern": {
-   *     "String": " "
-   *   },
-   *   "behavior": "MergedWithPrevious",
-   *   "invert": false
-   * },
-   * Notice that the `invert` option is not supported.
-   */
-  explicit RegexPreTokenizer(
-      const std::string& pattern,
-      bool is_delimiter = false,
-      const std::string& behavior = "")
-      : regex_(RegexPreTokenizer::create_regex_(pattern)),
-        is_delimiter_(is_delimiter),
-        behavior_(behavior) {}
+  explicit RegexPreTokenizer(const std::string& pattern)
+      : regex_(RegexPreTokenizer::create_regex_(pattern)) {}
 
   /** Pre-tokenize with the stored regex */
   std::vector<std::string> pre_tokenize(const std::string& input) const;
@@ -187,8 +151,6 @@ class RegexPreTokenizer : public PreTokenizer {
   static std::unique_ptr<IRegex> create_regex_(const std::string& pattern);
 
   std::unique_ptr<IRegex> regex_;
-  const bool is_delimiter_;
-  const std::string behavior_;
 
 }; // end class RegexPreTokenizer
 
