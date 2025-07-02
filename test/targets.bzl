@@ -141,6 +141,7 @@ def define_common_targets():
         ],
         deps = [
             "//pytorch/tokenizers:hf_tokenizer",
+            "//pytorch/tokenizers:regex_lookahead",
         ],
         env = {
             "RESOURCES_PATH": "$(location :resources)/resources",
