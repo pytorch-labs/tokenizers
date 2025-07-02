@@ -187,7 +187,7 @@ class RegexPreTokenizer : public PreTokenizer {
     if (behavior_.empty() ||
         (behavior_ != "Removed" && behavior_ != "MergedWithPrevious" &&
          behavior_ != "Isolated")) {
-      throw std::runtime_error("Invalid behavior: " + behavior_);
+      throw std::runtime_error("Unsupported behavior: " + behavior_);
     }
   }
 
