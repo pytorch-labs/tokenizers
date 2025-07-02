@@ -38,12 +38,13 @@ PreTokenizer::Ptr PreTokenizerConfig::create() const {
           "Missing pattern for PreTokenizer of type Split");
     }
 
-    // Validate behavior parameter
-    std::string behavior_str = behavior ? *behavior : "";
-    if (!behavior_str.empty() && behavior_str != "MergedWithPrevious") {
+    // Validate behavior parameter, if missing set to default "Removed"
+    std::string behavior_str = behavior ? *behavior : "Removed";
+    if (behavior_str != "MergedWithPrevious" && behavior_str != "Isolated" &&
+        behavior_str != "Removed") {
       throw std::runtime_error(
           "Unsupported behavior '" + behavior_str +
-          "' for Split PreTokenizer. Only 'MergedWithPrevious' is supported.");
+          "' for Split PreTokenizer. Only 'MergedWithPrevious', 'Removed' and 'Isolated' are supported.");
     }
 
     // Validate invert parameter
@@ -196,8 +197,31 @@ std::vector<std::string> RegexPreTokenizer::pre_tokenize(
       if (last_end < input.length()) {
         results.push_back(input.substr(last_end));
       }
-    } else {
-      // Default delimiter behavior (split on delimiters)
+    } else if (behavior_ == "Isolated") {
+      // Isolated: Keep delimiters as separate tokens
+      // Example: "the-final--countdown" with delimiter "-"
+      // -> ["the", "-", "final", "-", "-", "countdown"]
+      size_t last_end = 0;
+      for (const auto& match : matches) {
+        // Add text before the match (if any)
+        if (match.start > last_end) {
+          results.push_back(input.substr(last_end, match.start - last_end));
+        }
+
+        // Add the delimiter itself as a separate token
+        std::string delimiter =
+            input.substr(match.start, match.end - match.start);
+        results.push_back(delimiter);
+
+        last_end = match.end;
+      }
+
+      // Add remaining text after the last match (if any)
+      if (last_end < input.length()) {
+        results.push_back(input.substr(last_end));
+      }
+    } else if (behavior_ == "Removed" || behavior_.empty()) {
+      // Default delimiter behavior (split on delimiters, remove delimiters)
       size_t last_end = 0;
       for (const auto& match : matches) {
         // Add text before the match (if any)

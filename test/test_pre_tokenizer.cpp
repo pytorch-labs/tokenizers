@@ -366,7 +366,7 @@ TEST_F(PreTokenizerConfigTest, SplitWithUnsupportedBehavior) {
           .parse_json(json{
               {"type", "Split"},
               {"pattern", {{"String", "-"}}},
-              {"behavior", "Isolated"},
+              {"behavior", "MergedWithNext"},
               {"invert", false},
           })
           .create(),

@@ -160,25 +160,36 @@ class RegexPreTokenizer : public PreTokenizer {
    * @param pattern: The regex pattern to use for token splitting
    * @param is_delimiter: Whether treat `pattern` as delimiter characters, or
    * use `pattern` as a regex pattern.
-   * @param behavior: Split behavior (only "MergedWithPrevious" supported)
-   * For example:
-   * "pre_tokenizer": {
-   *   "type": "Split",
-   *   "pattern": {
+   * @param behavior: Split behavior ("MergedWithPrevious" or "Isolated"
+   * supported) For example: "pre_tokenizer": { "type": "Split", "pattern": {
    *     "String": " "
    *   },
-   *   "behavior": "MergedWithPrevious",
+   *   "behavior": "Isolated",
    *   "invert": false
    * },
+   *
+   * Behavior options:
+   * - "MergedWithPrevious": Include delimiter with previous token
+   *   Example: "the-final--countdown" -> ["the-", "final-", "-", "countdown"]
+   * - "Isolated": Keep delimiters as separate tokens
+   *   Example: "the-final--countdown" -> ["the", "-", "final", "-", "-",
+   * "countdown"]
+   *
    * Notice that the `invert` option is not supported.
    */
   explicit RegexPreTokenizer(
       const std::string& pattern,
       bool is_delimiter = false,
-      const std::string& behavior = "")
+      const std::string& behavior = "Removed")
       : regex_(RegexPreTokenizer::create_regex_(pattern)),
         is_delimiter_(is_delimiter),
-        behavior_(behavior) {}
+        behavior_(behavior) {
+    if (behavior_.empty() ||
+        (behavior_ != "Removed" && behavior_ != "MergedWithPrevious" &&
+         behavior_ != "Isolated")) {
+      throw std::runtime_error("Invalid behavior: " + behavior_);
+    }
+  }
 
   /** Pre-tokenize with the stored regex */
   std::vector<std::string> pre_tokenize(const std::string& input) const;
