@@ -23,10 +23,15 @@ static uint64_t _max_size() {
   return std::numeric_limits<uint64_t>::max();
 }
 
-static std::vector<uint64_t> _byte_pair_merge(
+} // namespace
+
+// ---- Helper utils end -------------------------------------------------------
+// ---- protected start --------------------------------------------------------
+
+std::vector<uint64_t> BPETokenizerBase::_byte_pair_merge(
     const std::string& piece,
     const TokenMap& ranks,
-    std::function<uint64_t(uint64_t, uint64_t)> func) {
+    std::function<uint64_t(uint64_t, uint64_t)> func) const {
   // This is a vector of (start, rank).
   // The rank is of the byte pair starting at position start.
   // The rank of the last item in the vector is not a valid value.
@@ -126,10 +131,6 @@ static std::vector<uint64_t> _byte_pair_merge(
   return out;
 }
 
-} // namespace
-// ---- Helper utils end -------------------------------------------------------
-// ---- protected start --------------------------------------------------------
-
 std::pair<std::optional<std::string>, std::string>
 BPETokenizerBase::split_with_allowed_special_token_(
     const std::string& input,
@@ -188,27 +189,30 @@ BPETokenizerBase::encode_with_special_token_(
 Result<std::vector<uint64_t>> BPETokenizerBase::byte_pair_encode_(
     const std::string& piece,
     const TokenMap& token_map) const {
+  TK_LOG(Info, "byte_pair_encode_, piece: '%s'", piece.c_str());
   if (piece.size() == 1) {
     const auto result = token_map.tryGetInteger(piece);
     if (result) {
       return std::vector<uint64_t>(*result);
     } else {
-      // TODO: is it possible?
       TK_LOG(Error, "unknown token: '%s'", piece.c_str());
       return Error::EncodeFailure;
     }
   }
 
+  // Use the pre-computed merge ranks (computed once during loading)
+  const TokenMap& merge_ranks = merge_ranks_ ? *merge_ranks_ : token_map;
+
+  // Use the original _byte_pair_merge function with the proper merge ranks
   return _byte_pair_merge(
-      piece, token_map, [&piece, &token_map](uint64_t start, uint64_t stop) {
+      piece, merge_ranks, [&piece, &token_map](uint64_t start, uint64_t stop) {
         std::string key = piece.substr(start, stop - start);
         const auto result = token_map.tryGetInteger(key);
         if (result) {
           return *result;
         } else {
-          // TODO: what if key does not exist? Should we
-          // return `unknown`? assert(false); // ??
-          return uint64_t(0);
+          TK_LOG(Error, "BPE merge produced unknown token: '%s'", key.c_str());
+          return uint64_t(0); // Return unknown token ID instead of padding
         }
       });
 }

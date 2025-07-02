@@ -124,7 +124,56 @@ Error HFTokenizer::load(const std::string& path) {
     // No decoder specified
   }
 
-  // TODO: Do we need to parse the merges?
+  // Parse the BPE merges
+  try {
+    std::cout << "Loading BPE merges..." << std::endl;
+    const auto& merges = parsed_json.at("/model/merges"_json_pointer);
+    std::vector<std::pair<std::string, std::string>> merge_pairs;
+
+    for (const auto& merge : merges) {
+      if (merge.size() == 2) {
+        std::string first = merge[0];
+        std::string second = merge[1];
+        merge_pairs.emplace_back(first, second);
+      }
+    }
+
+    // Build merge map: (token_id_1, token_id_2) -> (rank, merged_token_id)
+    merge_map_ = std::make_unique<detail::MergeMap>();
+    for (size_t i = 0; i < merge_pairs.size(); ++i) {
+      const auto& [first, second] = merge_pairs[i];
+
+      // Get token IDs for the merge pair
+      auto first_id = token_map_->tryGetInteger(first);
+      auto second_id = token_map_->tryGetInteger(second);
+
+      if (first_id && second_id) {
+        // Create merged token string
+        std::string merged = first + second;
+        auto merged_id = token_map_->tryGetInteger(merged);
+
+        if (merged_id) {
+          // Store merge rule: (first_id, second_id) -> (rank, merged_id)
+          merge_map_->emplace(
+              std::make_pair(*first_id, *second_id),
+              std::make_pair(static_cast<uint32_t>(i), *merged_id));
+        }
+      }
+    }
+
+    std::cout << "Loaded " << merge_map_->size() << " BPE merge rules"
+              << std::endl;
+
+    // Pre-compute merge ranks for efficient BPE encoding
+    auto merge_ranks =
+        TK_UNWRAP(detail::buildMergeRanksMap(*merge_map_, *token_map_));
+    std::cout << "Built merge ranks map with " << merge_ranks_->size()
+              << " entries" << std::endl;
+    merge_ranks_.emplace(std::move(merge_ranks));
+  } catch (const json::out_of_range& e) {
+    fprintf(stderr, "Could not parse merges: %s\n", e.what());
+    return Error::LoadFailure;
+  }
 
   // If a tokenizer config file is found, parse it to look up the eos/bos tokens
   if (!model_config_json.empty()) {
@@ -250,8 +299,11 @@ Error HFTokenizer::_encode(
     std::vector<uint64_t>& ret,
     uint64_t& last_piece_token_len) const {
   for (const auto& piece : _pretokenizer->pre_tokenize(input)) {
+    TK_LOG(Info, "pre-tokenized piece: '%s'", piece.c_str());
     const auto result = token_map_->tryGetInteger(piece);
     if (result) {
+      TK_LOG(Info, "found token: %d", *result);
+
       last_piece_token_len = 1;
       ret.push_back(*result);
       continue;
@@ -270,6 +322,67 @@ void HFTokenizer::_decode(const std::string& input, std::string& ret) const {
   } else {
     ret += input;
   }
+}
+
+Result<std::vector<uint64_t>> HFTokenizer::byte_pair_encode_(
+    const std::string& piece,
+    const detail::TokenMap& token_map) const {
+  if (piece.size() == 1) {
+    const auto result = token_map.tryGetInteger(piece);
+    if (result) {
+      return std::vector<uint64_t>(*result);
+    } else {
+      TK_LOG(Error, "unknown token: '%s'", piece.c_str());
+      return Error::EncodeFailure;
+    }
+  }
+
+  // Use the pre-computed merge ranks (computed once during loading)
+  const detail::TokenMap& merge_ranks =
+      merge_ranks_ ? *merge_ranks_ : token_map;
+
+  // Use the overridden _byte_pair_merge function with the proper merge ranks
+  return _byte_pair_merge(
+      piece, merge_ranks, [&piece, &token_map](uint64_t start, uint64_t stop) {
+        std::string key = piece.substr(start, stop - start);
+        const auto result = token_map.tryGetInteger(key);
+        if (result) {
+          return *result;
+        } else {
+          TK_LOG(Error, "BPE merge produced unknown token: '%s'", key.c_str());
+          return uint64_t(0); // Return unknown token ID instead of padding
+        }
+      });
+}
+
+std::vector<uint64_t> HFTokenizer::_byte_pair_merge(
+    const std::string& piece,
+    const detail::TokenMap& ranks,
+    std::function<uint64_t(uint64_t, uint64_t)> func) const {
+  // HF-specific BPE implementation that uses the Rust-style approach
+  // with pre-computed merge ranks
+
+  // Start with individual characters (like Rust implementation)
+  HFWord word;
+
+  // Process each character individually
+  for (size_t i = 0; i < piece.size(); ++i) {
+    uint64_t token_id = func(i, i + 1);
+    if (token_id != 0) { // Assuming 0 is padding/error token
+      word.add(token_id, 1);
+    } else {
+      // Handle unknown character
+      TK_LOG(Error, "Unknown character in HF BPE at position %zu", i);
+      return {}; // Return empty vector to indicate failure
+    }
+  }
+
+  // Apply BPE merges using the pre-computed merge ranks and token map
+  if (merge_ranks_ && token_map_) {
+    word.merge_all(*merge_ranks_, *token_map_);
+  }
+
+  return word.tokens;
 }
 
 } // namespace tokenizers

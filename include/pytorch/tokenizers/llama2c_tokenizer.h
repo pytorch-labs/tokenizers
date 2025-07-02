@@ -28,6 +28,15 @@ class Llama2cTokenizer : public Tokenizer {
       const override;
 
  private:
+  inline Error _decode_verify(uint64_t token) const {
+    if (!initialized_) {
+      return Error::Uninitialized;
+    }
+    if (token >= vocab_size_) {
+      return Error::OutOfRange;
+    }
+    return Error::Ok;
+  }
   std::unique_ptr<char*[]> vocab_ = nullptr;
   std::unique_ptr<float[]> vocab_scores_ = nullptr;
   std::unique_ptr<TokenIndex[]> sorted_vocab_ = nullptr;

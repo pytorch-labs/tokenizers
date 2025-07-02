@@ -125,6 +125,73 @@ inline Result<std::unique_ptr<IRegex>> build_special_token_regex(
   return create_regex(special_pattern);
 }
 
+// Hash function for std::pair<uint64_t, uint64_t>
+struct PairHash {
+  std::size_t operator()(const std::pair<uint64_t, uint64_t>& p) const {
+    return std::hash<uint64_t>{}(p.first) ^
+        (std::hash<uint64_t>{}(p.second) << 1);
+  }
+};
+
+// Type alias for BPE merge map: (token_id_1, token_id_2) -> (rank,
+// merged_token_id)
+using MergeMap = std::unordered_map<
+    std::pair<uint64_t, uint64_t>,
+    std::pair<uint64_t, uint64_t>,
+    PairHash>;
+
+// Utility function to build merge ranks map from merge rules
+template <typename TMergeMap>
+inline Result<TokenMap> buildMergeRanksMap(
+    const TMergeMap& merge_map,
+    const TokenMap& token_map) {
+  // Static assertions to verify TMergeMap has the expected key and value types
+  using KeyType = typename TMergeMap::key_type;
+  using ValueType = typename TMergeMap::mapped_type;
+
+  static_assert(
+      std::is_same_v<KeyType, std::pair<uint64_t, uint64_t>>,
+      "TMergeMap key type must be std::pair<uint64_t, uint64_t>");
+
+  static_assert(
+      std::is_same_v<ValueType, std::pair<uint64_t, uint64_t>>,
+      "TMergeMap value type must be std::pair<uint64_t, uint64_t>");
+
+  // Use a map to handle duplicates - keep the lowest rank (highest priority)
+  std::unordered_map<std::string, uint64_t> unique_merge_ranks;
+
+  for (const auto& [pair, rank_and_id] : merge_map) {
+    uint64_t first_id = pair.first;
+    uint64_t second_id = pair.second;
+    uint64_t rank = rank_and_id.first;
+
+    // Get the token strings for the pair
+    auto first_token = token_map.tryGetString(first_id);
+    auto second_token = token_map.tryGetString(second_id);
+
+    if (first_token && second_token) {
+      std::string merged_token =
+          std::string(*first_token) + std::string(*second_token);
+
+      // Keep the entry with the lowest rank (highest priority in BPE)
+      auto it = unique_merge_ranks.find(merged_token);
+      if (it == unique_merge_ranks.end() || rank < it->second) {
+        unique_merge_ranks[merged_token] = rank;
+      }
+    }
+  }
+
+  // Convert to vector for buildTokenMap
+  std::vector<std::pair<std::string, uint64_t>> merge_rank_pairs;
+  merge_rank_pairs.reserve(unique_merge_ranks.size());
+
+  for (const auto& [token, rank] : unique_merge_ranks) {
+    merge_rank_pairs.emplace_back(token, rank);
+  }
+
+  return buildTokenMap(std::move(merge_rank_pairs));
+}
+
 class BPETokenizerBase : public Tokenizer {
  public:
   Result<std::vector<uint64_t>>
@@ -152,14 +219,22 @@ class BPETokenizerBase : public Tokenizer {
       const std::string& text,
       const TokenMap& allowed_special) const;
 
-  Result<std::vector<uint64_t>> byte_pair_encode_(
+  virtual Result<std::vector<uint64_t>> byte_pair_encode_(
       const std::string& piece,
       const TokenMap& encoder) const;
+
+  // Virtual method for BPE merging - can be overridden by derived classes
+  virtual std::vector<uint64_t> _byte_pair_merge(
+      const std::string& piece,
+      const TokenMap& ranks,
+      std::function<uint64_t(uint64_t, uint64_t)> func) const;
 
   // Protected members that can be overloaded by other BPE tokenizers
   std::unique_ptr<IRegex> special_token_regex_;
   std::optional<TokenMap> token_map_;
   std::optional<TokenMap> special_token_map_;
+  std::unique_ptr<MergeMap> merge_map_;
+  std::optional<TokenMap> merge_ranks_; // Pre-computed merge ranks for BPE
 
  private:
   virtual Error _encode(
