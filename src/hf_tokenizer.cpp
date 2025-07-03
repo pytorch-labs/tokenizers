@@ -104,6 +104,17 @@ Error HFTokenizer::load(const std::string& path) {
   // Set the vocab size to include special tokens
   vocab_size_ = token_map_->size() + special_token_map_->size();
 
+  // Set up the normalizer (optional)
+  try {
+    std::cout << "Setting up normalizer..." << std::endl;
+    _normalizer =
+        NormalizerConfig().parse_json(parsed_json.at("normalizer")).create();
+    std::cout << "Normalizer set up" << std::endl;
+  } catch (const json::out_of_range& e) {
+    // No normalizer specified, this is optional
+    std::cout << "No normalizer specified" << std::endl;
+  }
+
   // Set up the pre-tokenizer
   try {
     std::cout << "Setting up pretokenizer..." << std::endl;
@@ -298,12 +309,20 @@ Error HFTokenizer::_encode(
     const std::string& input,
     std::vector<uint64_t>& ret,
     uint64_t& last_piece_token_len) const {
-  for (const auto& piece : _pretokenizer->pre_tokenize(input)) {
-    TK_LOG(Info, "pre-tokenized piece: '%s'", piece.c_str());
+  // Apply normalization first if normalizer is available
+  std::string normalized_input = input;
+  if (_normalizer) {
+    normalized_input = _normalizer->normalize(input);
+    TK_LOG(
+        Info,
+        "normalized input: '%s' -> '%s'",
+        input.c_str(),
+        normalized_input.c_str());
+  }
+
+  for (const auto& piece : _pretokenizer->pre_tokenize(normalized_input)) {
     const auto result = token_map_->tryGetInteger(piece);
     if (result) {
-      TK_LOG(Info, "found token: %d", *result);
-
       last_piece_token_len = 1;
       ret.push_back(*result);
       continue;
@@ -349,7 +368,12 @@ Result<std::vector<uint64_t>> HFTokenizer::byte_pair_encode_(
         if (result) {
           return *result;
         } else {
-          TK_LOG(Error, "BPE merge produced unknown token: '%s'", key.c_str());
+          TK_LOG(
+              Error,
+              "BPE merge produced unknown token: '%s', start: %lu, stop: %lu",
+              key.c_str(),
+              start,
+              stop);
           return uint64_t(0); // Return unknown token ID instead of padding
         }
       });
@@ -365,16 +389,46 @@ std::vector<uint64_t> HFTokenizer::_byte_pair_merge(
   // Start with individual characters (like Rust implementation)
   HFWord word;
 
-  // Process each character individually
-  for (size_t i = 0; i < piece.size(); ++i) {
-    uint64_t token_id = func(i, i + 1);
+  // Process each UTF-8 character individually
+  size_t i = 0;
+  while (i < piece.size()) {
+    size_t char_start = i;
+    size_t char_len = 1;
+
+    // Determine UTF-8 character length
+    unsigned char byte = static_cast<unsigned char>(piece[i]);
+    if ((byte & 0x80) == 0) {
+      // ASCII character (0xxxxxxx)
+      char_len = 1;
+    } else if ((byte & 0xE0) == 0xC0) {
+      // 2-byte UTF-8 character (110xxxxx)
+      char_len = 2;
+    } else if ((byte & 0xF0) == 0xE0) {
+      // 3-byte UTF-8 character (1110xxxx)
+      char_len = 3;
+    } else if ((byte & 0xF8) == 0xF0) {
+      // 4-byte UTF-8 character (11110xxx)
+      char_len = 4;
+    } else {
+      // Invalid UTF-8 start byte, treat as single byte
+      char_len = 1;
+    }
+
+    // Make sure we don't go beyond the string boundary
+    if (char_start + char_len > piece.size()) {
+      char_len = piece.size() - char_start;
+    }
+
+    uint64_t token_id = func(char_start, char_start + char_len);
     if (token_id != 0) { // Assuming 0 is padding/error token
-      word.add(token_id, 1);
+      word.add(token_id, char_len);
     } else {
       // Handle unknown character
-      TK_LOG(Error, "Unknown character in HF BPE at position %zu", i);
+      TK_LOG(Error, "Unknown character in HF BPE at position %zu", char_start);
       return {}; // Return empty vector to indicate failure
     }
+
+    i += char_len;
   }
 
   // Apply BPE merges using the pre-computed merge ranks and token map

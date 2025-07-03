@@ -18,6 +18,7 @@
 // Local
 #include <pytorch/tokenizers/bpe_tokenizer_base.h>
 #include <pytorch/tokenizers/error.h>
+#include <pytorch/tokenizers/normalizer.h>
 #include <pytorch/tokenizers/pre_tokenizer.h>
 #include <pytorch/tokenizers/result.h>
 #include <pytorch/tokenizers/token_decoder.h>
@@ -129,6 +130,7 @@ class HFTokenizer : public detail::BPETokenizerBase {
       const detail::TokenMap& ranks,
       std::function<uint64_t(uint64_t, uint64_t)> func) const override;
 
+  Normalizer::Ptr _normalizer;
   PreTokenizer::Ptr _pretokenizer;
   TokenDecoder::Ptr _decoder;
 };
