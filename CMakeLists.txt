@@ -46,6 +46,7 @@ set(tokenizers_source_files
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bpe_tokenizer_base.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/hf_tokenizer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/llama2c_tokenizer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/normalizer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pre_tokenizer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/re2_regex.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/regex.cpp

@@ -32,18 +32,19 @@ class Tokenizer {
 
   virtual Error load(const std::string& tokenizer_path) = 0;
 
+  /**
+   * Encode the input string into a vector of token IDs.
+   *
+   * @param input The input string to tokenize
+   * @param bos The number of beginning-of-sequence (BOS) tokens to prepend to
+   * the result
+   * @param eos The number of end-of-sequence (EOS) tokens to append to the
+   * result
+   * @return Result containing a vector of token IDs, or an error if encoding
+   * fails
+   */
   virtual Result<std::vector<uint64_t>>
-  encode(const std::string& input, int8_t bos, int8_t eos) const = 0;
-
-  Error decode_verify(uint64_t token) const {
-    if (!initialized_) {
-      return Error::Uninitialized;
-    }
-    if (token >= vocab_size_) {
-      return Error::OutOfRange;
-    }
-    return Error::Ok;
-  }
+  encode(const std::string& input, int8_t bos = 0, int8_t eos = 0) const = 0;
 
   virtual Result<std::string> decode(uint64_t prev_token, uint64_t token)
       const = 0;
