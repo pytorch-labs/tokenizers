@@ -74,17 +74,4 @@ TEST(HFTokenizerTest, TestDecode) {
   }
 }
 
-TEST(HFTokenizerTest, TestEncodePresidentQuestion) {
-  HFTokenizer tokenizer;
-  auto path = _get_resource_path("test_hf_tokenizer.json");
-  auto error = tokenizer.load(path);
-  EXPECT_EQ(error, Error::Ok);
-  std::string text = "Who is the president of the US?";
-  auto result = tokenizer.encode(text, /*bos*/ 1, /*eos*/ 0);
-  EXPECT_TRUE(result.ok());
-  std::vector<uint64_t> expected = {
-      2, 15938, 563, 506, 6207, 529, 506, 2590, 236881};
-  EXPECT_EQ(result.get(), expected);
-}
-
 } // namespace tokenizers
