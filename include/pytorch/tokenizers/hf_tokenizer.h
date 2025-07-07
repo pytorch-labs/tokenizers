@@ -137,7 +137,8 @@ class HFTokenizer : public detail::BPETokenizerBase {
   PreTokenizer::Ptr _pretokenizer;
   TokenDecoder::Ptr _decoder;
 
-  std::optional<TokenMap> merge_ranks_; // Pre-computed merge ranks for BPE
+  std::optional<detail::TokenMap>
+      merge_ranks_; // Pre-computed merge ranks for BPE
 };
 
 } // namespace tokenizers

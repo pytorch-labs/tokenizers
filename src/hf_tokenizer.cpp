@@ -11,9 +11,9 @@
 
 // Standard
 #include <algorithm>
+#include <cinttypes>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -36,7 +36,7 @@ Error HFTokenizer::load(const std::string& path) {
     const fs::path root(path);
     model_json = root / "tokenizer.json";
     if (!fs::exists(model_json)) {
-      fprintf(stderr, "no tokenizer.json found in %s\n", path.c_str());
+      TK_LOG(Info, "no tokenizer.json found in %s", path.c_str());
       return Error::LoadFailure;
     }
     const auto model_config_json_path = root / "tokenizer_config.json";
@@ -48,7 +48,7 @@ Error HFTokenizer::load(const std::string& path) {
   // Load the tokenizer.json file
   std::ifstream file(model_json);
   if (!file) {
-    fprintf(stderr, "failed to open encoder file: %s\n", path.c_str());
+    TK_LOG(Info, "failed to open encoder file: %s", path.c_str());
     return Error::LoadFailure;
   }
   std::string contents(
@@ -57,7 +57,7 @@ Error HFTokenizer::load(const std::string& path) {
   try {
     parsed_json = json::parse(contents);
   } catch (const json::exception& e) {
-    std::cerr << "Error parsing json file: " << e.what() << std::endl;
+    TK_LOG(Error, "Error parsing json file: %s", e.what());
     return Error::LoadFailure;
   }
 
@@ -77,7 +77,7 @@ Error HFTokenizer::load(const std::string& path) {
     // Store for future use.
     special_token_map_.emplace(std::move(special_token_map));
   } catch (const json::out_of_range& e) {
-    fprintf(stderr, "Could not parse special tokens: %s\n", e.what());
+    TK_LOG(Info, "Could not parse special tokens: %s", e.what());
     return Error::LoadFailure;
   }
 
@@ -97,7 +97,7 @@ Error HFTokenizer::load(const std::string& path) {
     auto token_map = TK_UNWRAP(detail::buildTokenMap(std::move(token_pairs)));
     token_map_.emplace(std::move(token_map));
   } catch (const json::out_of_range& e) {
-    fprintf(stderr, "Could not parse tokens: %s\n", e.what());
+    TK_LOG(Info, "Could not parse tokens: %s", e.what());
     return Error::LoadFailure;
   }
 
@@ -106,24 +106,24 @@ Error HFTokenizer::load(const std::string& path) {
 
   // Set up the normalizer (optional)
   try {
-    std::cout << "Setting up normalizer..." << std::endl;
+    TK_LOG(Info, "Setting up normalizer...");
     _normalizer =
         NormalizerConfig().parse_json(parsed_json.at("normalizer")).create();
-    std::cout << "Normalizer set up" << std::endl;
+    TK_LOG(Info, "Normalizer set up");
   } catch (const json::out_of_range& e) {
     // No normalizer specified, this is optional
-    std::cout << "No normalizer specified" << std::endl;
+    TK_LOG(Info, "No normalizer specified");
   }
 
   // Set up the pre-tokenizer
   try {
-    std::cout << "Setting up pretokenizer..." << std::endl;
+    TK_LOG(Info, "Setting up pretokenizer...");
     _pretokenizer = PreTokenizerConfig()
                         .parse_json(parsed_json.at("pre_tokenizer"))
                         .create();
-    std::cout << "Pretokenizer set up" << std::endl;
+    TK_LOG(Info, "Pretokenizer set up");
   } catch (const json::out_of_range& e) {
-    fprintf(stderr, "Could not parse pre_tokenizer: %s\n", e.what());
+    TK_LOG(Info, "Could not parse pre_tokenizer: %s", e.what());
     return Error::LoadFailure;
   }
 
@@ -137,7 +137,7 @@ Error HFTokenizer::load(const std::string& path) {
 
   // Parse the BPE merges
   try {
-    std::cout << "Loading BPE merges..." << std::endl;
+    TK_LOG(Info, "Loading BPE merges...");
     const auto& merges = parsed_json.at("/model/merges"_json_pointer);
     std::vector<std::pair<std::string, std::string>> merge_pairs;
 
@@ -172,17 +172,18 @@ Error HFTokenizer::load(const std::string& path) {
       }
     }
 
-    std::cout << "Loaded " << merge_map_->size() << " BPE merge rules"
-              << std::endl;
+    TK_LOG(Info, "Loaded " PRId64 " BPE merge rules", merge_map_->size());
 
     // Pre-compute merge ranks for efficient BPE encoding
     auto merge_ranks =
         TK_UNWRAP(detail::buildMergeRanksMap(*merge_map_, *token_map_));
-    std::cout << "Built merge ranks map with " << merge_ranks_->size()
-              << " entries" << std::endl;
+    TK_LOG(
+        Info,
+        "Built merge ranks map with " PRId64 " entries",
+        merge_ranks_->size());
     merge_ranks_.emplace(std::move(merge_ranks));
   } catch (const json::out_of_range& e) {
-    fprintf(stderr, "Could not parse merges: %s\n", e.what());
+    TK_LOG(Error, "Could not parse merges: %s", e.what());
     return Error::LoadFailure;
   }
 
@@ -191,7 +192,7 @@ Error HFTokenizer::load(const std::string& path) {
     // Load it and parse it as json
     std::ifstream config_file(model_config_json);
     if (!config_file) {
-      fprintf(stderr, "failed to open encoder file: %s\n", path.c_str());
+      TK_LOG(Error, "failed to open encoder file: %s", path.c_str());
       return Error::LoadFailure;
     }
     std::string config_contents(
@@ -201,8 +202,7 @@ Error HFTokenizer::load(const std::string& path) {
     try {
       parsed_config_json = json::parse(config_contents);
     } catch (const json::exception& e) {
-      std::cerr << "Error parsing model config json json file: " << e.what()
-                << std::endl;
+      TK_LOG(Error, "Error parsing model config json json file: %s", e.what());
       return Error::LoadFailure;
     }
 
@@ -220,20 +220,17 @@ Error HFTokenizer::load(const std::string& path) {
       const auto bos_res = special_token_map_->tryGetInteger(bos_token);
       const auto eos_res = special_token_map_->tryGetInteger(eos_token);
       if (!bos_res) {
-        fprintf(
-            stderr, "BOS token %s not in special tokens\n", bos_token.c_str());
+        TK_LOG(Error, "BOS token %s not in special tokens", bos_token.c_str());
         return Error::LoadFailure;
       }
       if (!eos_res) {
-        fprintf(
-            stderr, "EOS token %s not in special tokens\n", eos_token.c_str());
+        TK_LOG(Error, "EOS token %s not in special tokens", eos_token.c_str());
         return Error::LoadFailure;
       }
       bos_tok_ = *bos_res;
       eos_tok_ = *eos_res;
     } catch (const json::out_of_range& e) {
-      fprintf(
-          stderr, "Could not eos/bos from tokenizer config: %s\n", e.what());
+      TK_LOG(Error, "Could not eos/bos from tokenizer config: %s", e.what());
       return Error::LoadFailure;
     }
   }
@@ -321,6 +318,7 @@ Error HFTokenizer::_encode(
   }
 
   for (const auto& piece : _pretokenizer->pre_tokenize(normalized_input)) {
+    // Check if the entire word is already a token to skip merging.
     const auto result = token_map_->tryGetInteger(piece);
     if (result) {
       last_piece_token_len = 1;
