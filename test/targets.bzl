@@ -138,6 +138,7 @@ def define_common_targets():
         srcs = [
             "test_hf_tokenizer.cpp",
             "test_token_decoder.cpp",
+            "test_normalizer.cpp",
         ],
         deps = [
             "//pytorch/tokenizers:hf_tokenizer",
