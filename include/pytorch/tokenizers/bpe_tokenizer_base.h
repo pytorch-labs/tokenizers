@@ -234,7 +234,6 @@ class BPETokenizerBase : public Tokenizer {
   std::optional<TokenMap> token_map_;
   std::optional<TokenMap> special_token_map_;
   std::unique_ptr<MergeMap> merge_map_;
-  std::optional<TokenMap> merge_ranks_; // Pre-computed merge ranks for BPE
 
  private:
   virtual Error _encode(

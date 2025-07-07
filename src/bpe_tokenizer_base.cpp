@@ -189,7 +189,6 @@ BPETokenizerBase::encode_with_special_token_(
 Result<std::vector<uint64_t>> BPETokenizerBase::byte_pair_encode_(
     const std::string& piece,
     const TokenMap& token_map) const {
-  TK_LOG(Info, "byte_pair_encode_, piece: '%s'", piece.c_str());
   if (piece.size() == 1) {
     const auto result = token_map.tryGetInteger(piece);
     if (result) {
@@ -200,12 +199,9 @@ Result<std::vector<uint64_t>> BPETokenizerBase::byte_pair_encode_(
     }
   }
 
-  // Use the pre-computed merge ranks (computed once during loading)
-  const TokenMap& merge_ranks = merge_ranks_ ? *merge_ranks_ : token_map;
-
   // Use the original _byte_pair_merge function with the proper merge ranks
   return _byte_pair_merge(
-      piece, merge_ranks, [&piece, &token_map](uint64_t start, uint64_t stop) {
+      piece, token_map, [&piece, &token_map](uint64_t start, uint64_t stop) {
         std::string key = piece.substr(start, stop - start);
         const auto result = token_map.tryGetInteger(key);
         if (result) {

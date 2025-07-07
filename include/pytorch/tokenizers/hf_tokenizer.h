@@ -124,7 +124,10 @@ class HFTokenizer : public detail::BPETokenizerBase {
       const std::string& piece,
       const detail::TokenMap& encoder) const override;
 
-  // Override the virtual _byte_pair_merge method to use HF-specific BPE logic
+  // Override the virtual _byte_pair_merge method to use HF-specific BPE logic.
+  // Different from Tiktoken (another user of BPETokenizerBase, HF tokenizers
+  // are taking merge rules from tokenizer.json so the logic in _byte_pair_merge
+  // is different.
   std::vector<uint64_t> _byte_pair_merge(
       const std::string& piece,
       const detail::TokenMap& ranks,
@@ -133,6 +136,8 @@ class HFTokenizer : public detail::BPETokenizerBase {
   Normalizer::Ptr _normalizer;
   PreTokenizer::Ptr _pretokenizer;
   TokenDecoder::Ptr _decoder;
+
+  std::optional<TokenMap> merge_ranks_; // Pre-computed merge ranks for BPE
 };
 
 } // namespace tokenizers
