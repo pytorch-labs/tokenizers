@@ -172,7 +172,10 @@ Error HFTokenizer::load(const std::string& path) {
       }
     }
 
-    TK_LOG(Info, "Loaded %" PRId64 " BPE merge rules", merge_map_->size());
+    TK_LOG(
+        Info,
+        "Loaded %" PRId64 " BPE merge rules",
+        static_cast<int64_t>(merge_map_->size()));
 
     // Pre-compute merge ranks for efficient BPE encoding
     auto merge_ranks =
@@ -180,7 +183,7 @@ Error HFTokenizer::load(const std::string& path) {
     TK_LOG(
         Info,
         "Built merge ranks map with %" PRId64 " entries",
-        merge_ranks.size());
+        static_cast<int64_t>(merge_ranks.size()));
     merge_ranks_.emplace(std::move(merge_ranks));
   } catch (const json::out_of_range& e) {
     TK_LOG(Error, "Could not parse merges: %s", e.what());
