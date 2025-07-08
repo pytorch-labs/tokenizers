@@ -33,7 +33,7 @@ namespace detail {
 using TokenMap = StringIntegerMap<>;
 
 template <typename TToken, typename TRank>
-static Result<TokenMap> buildTokenMap(
+static Result<TokenMap> build_token_map(
     std::vector<std::pair<TToken, TRank>> container) {
   static_assert(
       std::is_same_v<TToken, std::string> ||
@@ -82,7 +82,7 @@ static Result<TokenMap> buildTokenMap(
 };
 
 template <typename TContainer, typename TTokenAccessor, typename TRankAccessor>
-static Result<TokenMap> buildTokenMap(
+static Result<TokenMap> build_token_map(
     const TContainer& container,
     TTokenAccessor token_accessor,
     TRankAccessor rank_accessor) {
@@ -103,7 +103,7 @@ static Result<TokenMap> buildTokenMap(
     pairs.emplace_back(token_accessor(value), rank_accessor(value));
   }
 
-  return buildTokenMap(std::move(pairs));
+  return build_token_map(std::move(pairs));
 }
 
 inline Result<std::unique_ptr<IRegex>> build_special_token_regex(
@@ -152,9 +152,18 @@ class BPETokenizerBase : public Tokenizer {
       const std::string& text,
       const TokenMap& allowed_special) const;
 
-  Result<std::vector<uint64_t>> byte_pair_encode_(
+  virtual Result<std::vector<uint64_t>> byte_pair_encode_(
       const std::string& piece,
       const TokenMap& encoder) const;
+
+  // Virtual method for BPE merging - can be overridden by derived classes
+  // The passed in `ranks` param for the base impl is just a regular token map
+  // and that the actual ranks are derived implicitly from the regular token
+  // map. This is the same implementation as Tiktoken.
+  virtual std::vector<uint64_t> _byte_pair_merge(
+      const std::string& piece,
+      const TokenMap& ranks,
+      std::function<uint64_t(uint64_t, uint64_t)> func) const;
 
   // Protected members that can be overloaded by other BPE tokenizers
   std::unique_ptr<IRegex> special_token_regex_;

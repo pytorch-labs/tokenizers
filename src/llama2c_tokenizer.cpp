@@ -128,7 +128,7 @@ Llama2cTokenizer::~Llama2cTokenizer() {
 Result<std::string> Llama2cTokenizer::decode(
     uint64_t prev_token,
     uint64_t token) const {
-  TK_CHECK_OK_OR_RETURN_ERROR(Tokenizer::decode_verify(token));
+  TK_CHECK_OK_OR_RETURN_ERROR(_decode_verify(token));
   const char* piece = vocab_[token];
   // following BOS token, sentencepiece decoder strips any leading
   // whitespace

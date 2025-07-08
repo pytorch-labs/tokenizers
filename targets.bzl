@@ -136,6 +136,7 @@ def define_common_targets():
             "src/hf_tokenizer.cpp",
             "src/pre_tokenizer.cpp",
             "src/token_decoder.cpp",
+            "src/normalizer.cpp",
         ],
         deps = [
             ":regex",
