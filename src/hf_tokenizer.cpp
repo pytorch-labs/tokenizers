@@ -172,14 +172,14 @@ Error HFTokenizer::load(const std::string& path) {
       }
     }
 
-    TK_LOG(Info, "Loaded " PRId64 " BPE merge rules", merge_map_->size());
+    TK_LOG(Info, "Loaded %" PRId64 " BPE merge rules", merge_map_->size());
 
     // Pre-compute merge ranks for efficient BPE encoding
     auto merge_ranks =
         TK_UNWRAP(detail::build_merge_ranks_map(*merge_map_, *token_map_));
     TK_LOG(
         Info,
-        "Built merge ranks map with " PRId64 " entries",
+        "Built merge ranks map with %" PRId64 " entries",
         merge_ranks_->size());
     merge_ranks_.emplace(std::move(merge_ranks));
   } catch (const json::out_of_range& e) {
