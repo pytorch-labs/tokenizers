@@ -180,7 +180,7 @@ Error HFTokenizer::load(const std::string& path) {
     TK_LOG(
         Info,
         "Built merge ranks map with %" PRId64 " entries",
-        merge_ranks_->size());
+        merge_ranks.size());
     merge_ranks_.emplace(std::move(merge_ranks));
   } catch (const json::out_of_range& e) {
     TK_LOG(Error, "Could not parse merges: %s", e.what());
