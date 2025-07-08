@@ -87,7 +87,7 @@ static Result<TokenMap> _load_token_map(const std::string& path) {
     pairs.emplace_back(std::move(token), rank);
   }
 
-  return buildTokenMap(pairs);
+  return build_token_map(pairs);
 }
 
 } // namespace

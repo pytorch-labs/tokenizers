@@ -65,7 +65,7 @@ Error HFTokenizer::load(const std::string& path) {
   try {
     std::vector<std::pair<std::string, std::uint64_t>> special_token_pairs;
     const auto& special_tokens = parsed_json.at("added_tokens");
-    auto special_token_map = TK_UNWRAP(detail::buildTokenMap(
+    auto special_token_map = TK_UNWRAP(detail::build_token_map(
         special_tokens,
         [](const auto& it) -> std::string { return it.at("content"); },
         [](const auto& it) -> std::uint64_t { return it.at("id"); }));
@@ -94,7 +94,7 @@ Error HFTokenizer::load(const std::string& path) {
       }
     }
 
-    auto token_map = TK_UNWRAP(detail::buildTokenMap(std::move(token_pairs)));
+    auto token_map = TK_UNWRAP(detail::build_token_map(std::move(token_pairs)));
     token_map_.emplace(std::move(token_map));
   } catch (const json::out_of_range& e) {
     TK_LOG(Info, "Could not parse tokens: %s", e.what());
@@ -176,7 +176,7 @@ Error HFTokenizer::load(const std::string& path) {
 
     // Pre-compute merge ranks for efficient BPE encoding
     auto merge_ranks =
-        TK_UNWRAP(detail::buildMergeRanksMap(*merge_map_, *token_map_));
+        TK_UNWRAP(detail::build_merge_ranks_map(*merge_map_, *token_map_));
     TK_LOG(
         Info,
         "Built merge ranks map with " PRId64 " entries",
@@ -368,7 +368,8 @@ Result<std::vector<uint64_t>> HFTokenizer::byte_pair_encode_(
         } else {
           TK_LOG(
               Error,
-              "BPE merge produced unknown token: '%s', start: %lu, stop: %lu",
+              "BPE merge produced unknown token: '%s', start: %" PRIu64
+              ", stop: %" PRIu64,
               key.c_str(),
               start,
               stop);

@@ -24,6 +24,76 @@
 #include <pytorch/tokenizers/token_decoder.h>
 
 namespace tokenizers {
+namespace detail {
+
+// Hash function for std::pair<uint64_t, uint64_t>
+struct PairHash {
+  std::size_t operator()(const std::pair<uint64_t, uint64_t>& p) const {
+    return std::hash<uint64_t>{}(p.first) ^
+        (std::hash<uint64_t>{}(p.second) << 1);
+  }
+};
+
+// Type alias for BPE merge map: (token_id_1, token_id_2) -> (rank,
+// merged_token_id)
+using MergeMap = std::unordered_map<
+    std::pair<uint64_t, uint64_t>,
+    std::pair<uint64_t, uint64_t>,
+    PairHash>;
+
+// Utility function to build merge ranks map from merge rules
+template <typename TMergeMap>
+inline Result<TokenMap> build_merge_ranks_map(
+    const TMergeMap& merge_map,
+    const TokenMap& token_map) {
+  // Static assertions to verify TMergeMap has the expected key and value types
+  using KeyType = typename TMergeMap::key_type;
+  using ValueType = typename TMergeMap::mapped_type;
+
+  static_assert(
+      std::is_same_v<KeyType, std::pair<uint64_t, uint64_t>>,
+      "TMergeMap key type must be std::pair<uint64_t, uint64_t>");
+
+  static_assert(
+      std::is_same_v<ValueType, std::pair<uint64_t, uint64_t>>,
+      "TMergeMap value type must be std::pair<uint64_t, uint64_t>");
+
+  // Use a map to handle duplicates - keep the lowest rank (highest priority)
+  std::unordered_map<std::string, uint64_t> unique_merge_ranks;
+
+  for (const auto& [pair, rank_and_id] : merge_map) {
+    uint64_t first_id = pair.first;
+    uint64_t second_id = pair.second;
+    uint64_t rank = rank_and_id.first;
+
+    // Get the token strings for the pair
+    auto first_token = token_map.tryGetString(first_id);
+    auto second_token = token_map.tryGetString(second_id);
+
+    if (first_token && second_token) {
+      std::string merged_token =
+          std::string(*first_token) + std::string(*second_token);
+
+      // Keep the entry with the lowest rank (highest priority in BPE)
+      auto it = unique_merge_ranks.find(merged_token);
+      if (it == unique_merge_ranks.end() || rank < it->second) {
+        unique_merge_ranks[merged_token] = rank;
+      }
+    }
+  }
+
+  // Convert to vector for buildTokenMap
+  std::vector<std::pair<std::string, uint64_t>> merge_rank_pairs;
+  merge_rank_pairs.reserve(unique_merge_ranks.size());
+
+  for (const auto& [token, rank] : unique_merge_ranks) {
+    merge_rank_pairs.emplace_back(token, rank);
+  }
+
+  return build_token_map(std::move(merge_rank_pairs));
+}
+
+} // namespace detail
 
 // Simple Word structure to mimic Rust's Word behavior
 struct HFWord {
@@ -124,10 +194,9 @@ class HFTokenizer : public detail::BPETokenizerBase {
       const std::string& piece,
       const detail::TokenMap& encoder) const override;
 
-  // Override the virtual _byte_pair_merge method to use HF-specific BPE logic.
-  // Different from Tiktoken (another user of BPETokenizerBase, HF tokenizers
-  // are taking merge rules from tokenizer.json so the logic in _byte_pair_merge
-  // is different.
+  // Override the virtual _byte_pair_merge method to use explicit merges
+  // specified in tokenizer.json. Different from Tiktoken (another user of
+  // BPETokenizerBase, but doesn't use explicit merge rules).
   std::vector<uint64_t> _byte_pair_merge(
       const std::string& piece,
       const detail::TokenMap& ranks,
@@ -137,6 +206,7 @@ class HFTokenizer : public detail::BPETokenizerBase {
   PreTokenizer::Ptr _pretokenizer;
   TokenDecoder::Ptr _decoder;
 
+  std::unique_ptr<detail::MergeMap> merge_map_;
   std::optional<detail::TokenMap>
       merge_ranks_; // Pre-computed merge ranks for BPE
 };
