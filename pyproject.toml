@@ -4,6 +4,8 @@ requires = [
   "pip>=23",  # For building the pip package.
   "setuptools>=63",  # For building the pip package contents.
   "wheel",  # For building the pip package archive.
+  "pytest",  # For running tests.
+  "pybind11",  # For building the pybind11 C++ extension.
 ]
 build-backend = "setuptools.build_meta"
 
@@ -64,12 +66,22 @@ Changelog = "https://github.com/pytorch/executorch/releases"
 [tool.setuptools.exclude-package-data]
 "*" = ["*.pyc"]
 
-[tool.usort]
-# Do not try to put "first-party" imports in their own section.
-first_party_detection = false
+[tool.pytest.ini_options]
+testpaths = ["test"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
 
 [tool.black]
-# Emit syntax compatible with older versions of python instead of only the range
-# specified by `requires-python`. TODO: Remove this once we support these older
-# versions of python and can expand the `requires-python` range.
-target-version = ["py38", "py39", "py310", "py311", "py312"]
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | build
+  | dist
+  | third-party
+)/
+'''

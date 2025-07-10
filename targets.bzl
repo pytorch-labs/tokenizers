@@ -171,3 +171,24 @@ def define_common_targets():
         ],
         platforms = PLATFORMS,
     )
+
+    runtime.cxx_python_extension(
+        name = "pytorch_tokenizers_cpp",
+        srcs = [
+            "src/python_bindings.cpp",
+        ],
+        visibility = [
+            "@EXECUTORCH_CLIENTS",
+            "//pytorch/tokenizers/...",
+        ],
+        base_module = "pytorch_tokenizers",
+        deps = [
+            ":hf_tokenizer",
+            ":llama2c_tokenizer",
+            ":sentencepiece",
+            ":tiktoken",
+        ],
+        external_deps = [
+            "pybind11",
+        ],
+    )

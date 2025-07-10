@@ -127,9 +127,10 @@ def define_common_targets():
         ],
         deps = [
             "//pytorch/tokenizers/pytorch_tokenizers:tokenizers",
+            "fbsource//third-party/pypi/blobfile:blobfile",
         ],
         resources = {
-            ":test_tiktoken_tokenizer_model": "test_tiktoken_tokenizer.model",
+            ":test_tiktoken_tokenizer_model": "resources/test_tiktoken_tokenizer.model",
         },
     )
 
