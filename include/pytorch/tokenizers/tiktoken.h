@@ -47,6 +47,27 @@ class Tiktoken : public detail::BPETokenizerBase {
   }
 
   explicit Tiktoken(
+      std::string pattern,
+      const std::vector<std::string>& special_tokens,
+      size_t bos_token_index,
+      size_t eos_token_index)
+      : Tiktoken(
+            pattern,
+            std::make_unique<std::vector<std::string>>(special_tokens),
+            bos_token_index,
+            eos_token_index) {}
+
+  explicit Tiktoken(
+      const std::vector<std::string>& special_tokens,
+      size_t bos_token_index,
+      size_t eos_token_index)
+      : Tiktoken(
+            _get_default_patern(),
+            std::make_unique<std::vector<std::string>>(special_tokens),
+            bos_token_index,
+            eos_token_index) {}
+
+  explicit Tiktoken(
       std::unique_ptr<std::vector<std::string>> special_tokens,
       size_t bos_token_index,
       size_t eos_token_index)

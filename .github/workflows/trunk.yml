@@ -33,4 +33,11 @@ jobs:
         set -ex
         cmake -DCMAKE_BUILD_TYPE=Debug test -Bbuild/test
         cmake --build build/test -j9 --config Debug
-        cd build/test && ctest
+        pushd build/test && ctest && popd
+
+        # Install tokenizers
+        ${CONDA_RUN} pip install . -v
+        ${CONDA_RUN} pip install pytest blobfile
+
+        # Run tests
+        ${CONDA_RUN} pytest

@@ -11,19 +11,17 @@ def define_common_targets():
         srcs = [
             "__init__.py",
             "constants.py",
+            "hf_tokenizer.py",
             "llama2c.py",
             "tiktoken.py",
-            "hf_tokenizer.py",
         ],
         base_module = "pytorch_tokenizers",
         visibility = ["PUBLIC"],
         _is_external_target = True,
-        external_deps = [
-            "sentencepiece-py",
-        ],
         deps = [
-            "fbsource//third-party/pypi/blobfile:blobfile",
+            "fbsource//third-party/pypi/sentencepiece:sentencepiece",
             "fbsource//third-party/pypi/tiktoken:tiktoken",
             "fbsource//third-party/pypi/tokenizers:tokenizers",
+            "//pytorch/tokenizers:pytorch_tokenizers_cpp",  # @manual
         ],
     )
