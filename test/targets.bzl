@@ -114,26 +114,6 @@ def define_common_targets():
         ]),
     )
 
-    runtime.export_file(
-        name = "test_tiktoken_tokenizer_model",
-        src = "resources/test_tiktoken_tokenizer.model",
-        visibility = ["@EXECUTORCH_CLIENTS", "//pytorch/tokenizers/..."],
-    )
-
-    runtime.python_test(
-        name = "test_tiktoken_py",
-        srcs = [
-            "test_tiktoken.py",
-        ],
-        deps = [
-            "//pytorch/tokenizers/pytorch_tokenizers:tokenizers",
-            "fbsource//third-party/pypi/blobfile:blobfile",
-        ],
-        resources = {
-            ":test_tiktoken_tokenizer_model": "resources/test_tiktoken_tokenizer.model",
-        },
-    )
-
     runtime.cxx_test(
         name = "test_hf_tokenizer",
         srcs = [
