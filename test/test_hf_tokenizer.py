@@ -9,8 +9,6 @@
 Test script for hf tokenizers.
 """
 
-import os
-import sys
 import unittest
 from pytorch_tokenizers import CppHFTokenizer
 from transformers import AutoTokenizer

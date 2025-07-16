@@ -122,7 +122,6 @@ Error HFTokenizer::load(const std::string& path) {
         e.what());
   }
 
-
   // Set up the pre-tokenizer
   try {
     TK_LOG(Info, "Setting up pretokenizer...");
