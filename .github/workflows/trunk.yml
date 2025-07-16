@@ -37,7 +37,7 @@ jobs:
 
         # Install tokenizers
         ${CONDA_RUN} pip install . -v
-        ${CONDA_RUN} pip install pytest blobfile
+        ${CONDA_RUN} pip install pytest blobfile transformers>=4.53.1
 
         # Run tests
         ${CONDA_RUN} pytest
