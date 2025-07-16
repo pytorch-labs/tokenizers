@@ -75,6 +75,7 @@ file(GLOB unicode_source_files
 add_library(
   tokenizers STATIC ${tokenizers_source_files} ${unicode_source_files}
 )
+add_library(tokenizers::tokenizers ALIAS tokenizers)
 
 # Using abseil from sentencepiece/third_party
 target_include_directories(
@@ -115,6 +116,7 @@ if(SUPPORT_REGEX_LOOKAHEAD)
     ${CMAKE_CURRENT_SOURCE_DIR}/src/regex_lookahead.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/std_regex.cpp
   )
+  add_library(tokenizers::regex_lookahead ALIAS regex_lookahead)
   target_link_libraries(regex_lookahead PUBLIC pcre2-8-static)
   target_include_directories(
     regex_lookahead
