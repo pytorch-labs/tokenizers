@@ -107,13 +107,21 @@ Error HFTokenizer::load(const std::string& path) {
   // Set up the normalizer (optional)
   try {
     TK_LOG(Info, "Setting up normalizer...");
-    _normalizer =
-        NormalizerConfig().parse_json(parsed_json.at("normalizer")).create();
-    TK_LOG(Info, "Normalizer set up");
+    const auto& normalizer_json = parsed_json.at("normalizer");
+    if (!normalizer_json.is_null()) {
+      _normalizer = NormalizerConfig().parse_json(normalizer_json).create();
+      TK_LOG(Info, "Normalizer set up");
+    } else {
+      TK_LOG(Info, "Normalizer field is null, skipping");
+    }
   } catch (const json::out_of_range& e) {
-    // No normalizer specified, this is optional
-    TK_LOG(Info, "No normalizer specified");
+    // No "Normalizer" field found
+    TK_LOG(
+        Info,
+        "No 'Normalizer' field found in json, out of range error: %s",
+        e.what());
   }
+
 
   // Set up the pre-tokenizer
   try {
