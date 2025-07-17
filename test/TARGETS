@@ -4,6 +4,7 @@
 load("@fbsource//xplat/executorch/build:runtime_wrapper.bzl", "runtime")
 load(":targets.bzl", "define_common_targets")
 
+# @noautodeps
 oncall("ai_infra_mobile_platform")
 
 define_common_targets()

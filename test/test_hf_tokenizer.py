@@ -10,18 +10,16 @@ Test script for hf tokenizers.
 """
 
 import unittest
+from tempfile import TemporaryDirectory
+
 import pytest
 from pytorch_tokenizers import CppHFTokenizer
 from transformers import AutoTokenizer
-from tempfile import TemporaryDirectory
 
 PROMPT = "What is the capital of France?"
 
 
-@pytest.mark.parametrize("model_id", [
-    "HuggingFaceTB/SmolLM3-3B",
-    "Qwen/Qwen2.5-0.5B"
-])
+@pytest.mark.parametrize("model_id", ["HuggingFaceTB/SmolLM3-3B", "Qwen/Qwen2.5-0.5B"])
 def test_models(model_id: str) -> None:
     with TemporaryDirectory() as temp_dir:
         tokenizer = AutoTokenizer.from_pretrained(model_id)
