@@ -38,7 +38,20 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/abseil-cpp)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/re2)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/sentencepiece)
+
+if(NOT DEFINED SPM_BUILD_TEST)
+  set(SPM_BUILD_TEST OFF CACHE BOOL "")
+endif()
+
+if(NOT DEFINED SPM_ENABLE_SHARED)
+  set(SPM_ENABLE_SHARED OFF CACHE BOOL "")
+endif()
+
+add_subdirectory(
+  ${CMAKE_CURRENT_SOURCE_DIR}/third-party/sentencepiece
+  ${CMAKE_CURRENT_BINARY_DIR}/sentencepiece-build
+  EXCLUDE_FROM_ALL
+)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ${_pic_flag})
 
