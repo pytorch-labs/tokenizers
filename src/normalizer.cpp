@@ -10,6 +10,9 @@
 // Local
 #include <pytorch/tokenizers/normalizer.h>
 
+// Third Party
+#include <unicode.h>
+
 // Standard
 #include <algorithm>
 #include <iterator>
@@ -54,6 +57,9 @@ Normalizer::Ptr NormalizerConfig::create() const {
         [](const NormalizerConfig& cfg) { return cfg.create(); });
     return Normalizer::Ptr(new SequenceNormalizer(norms));
   }
+  if (type == "NFC") {
+    return Normalizer::Ptr(new NFCNormalizer());
+  }
   throw std::runtime_error("Unsupported Normalizer type: " + type);
 }
 
@@ -76,6 +82,11 @@ NormalizerConfig& NormalizerConfig::parse_json(const json& json_config) {
     for (const auto& entry : json_config.at("normalizers")) {
       normalizers->push_back(NormalizerConfig().parse_json(entry));
     }
+  } else if (type == "NFC") {
+    // NFC normalizer has no additional configuration parameters
+    TK_LOG(
+        Info,
+        "Using NFC normalizer. Please notice that our implementation may not handle all edge cases.");
   } else {
     throw std::runtime_error("Unsupported Normalizer type: " + type);
   }
@@ -116,6 +127,24 @@ std::string SequenceNormalizer::normalize(const std::string& input) const {
   for (const auto& normalizer : normalizers_) {
     result = normalizer->normalize(result);
   }
+  return result;
+}
+
+// NFCNormalizer ///////////////////////////////////////////////////////////////
+
+std::string NFCNormalizer::normalize(const std::string& input) const {
+  // Convert UTF-8 string to codepoints
+  auto codepoints = unicode_cpts_from_utf8(input);
+
+  // Apply NFC normalization
+  auto normalized_cpts = unicode_cpts_normalize_nfc(codepoints);
+
+  // Convert back to UTF-8 string
+  std::string result;
+  for (uint32_t cpt : normalized_cpts) {
+    result += unicode_cpt_to_utf8(cpt);
+  }
+
   return result;
 }
 
