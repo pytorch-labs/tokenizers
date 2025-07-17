@@ -37,8 +37,8 @@ set(_pic_flag ${CMAKE_POSITION_INDEPENDENT_CODE})
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/abseil-cpp)
-
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/re2)
+
 if(NOT DEFINED SPM_BUILD_TEST)
   set(SPM_BUILD_TEST OFF CACHE BOOL "")
 endif()
