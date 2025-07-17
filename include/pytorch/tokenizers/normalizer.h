@@ -171,4 +171,19 @@ class SequenceNormalizer : public Normalizer {
 
 }; // end class SequenceNormalizer
 
+// -- NFC ----------------------------------------------------------------------
+// Used for Unicode NFC (Normalization Form Canonical Composition) normalization
+// CITE:
+// https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/normalizers/unicode.rs
+
+class NFCNormalizer : public Normalizer {
+ public:
+  /** Default constructor */
+  explicit NFCNormalizer() = default;
+
+  /** Normalize with NFC Unicode normalization */
+  std::string normalize(const std::string& input) const override;
+
+}; // end class NFCNormalizer
+
 } // namespace tokenizers

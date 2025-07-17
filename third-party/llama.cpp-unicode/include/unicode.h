@@ -84,6 +84,9 @@ std::vector<uint32_t> unicode_cpts_from_utf8(const std::string &utf8);
 std::vector<uint32_t>
 unicode_cpts_normalize_nfd(const std::vector<uint32_t> &cpts);
 
+std::vector<uint32_t>
+unicode_cpts_normalize_nfc(const std::vector<uint32_t> &cpts);
+
 codepoint_flags unicode_cpt_flags(const uint32_t cp);
 codepoint_flags unicode_cpt_flags(const std::string &utf8);
 

@@ -10,27 +10,35 @@ Test script for hf tokenizers.
 """
 
 import unittest
+import pytest
 from pytorch_tokenizers import CppHFTokenizer
 from transformers import AutoTokenizer
 from tempfile import TemporaryDirectory
 
 PROMPT = "What is the capital of France?"
 
-class TestHfTokenizer(unittest.TestCase):
-    def setUp(self) -> None:
-        self.temp_dir = TemporaryDirectory()
-        super().setUp()
 
-    def test_smolLM3(self) -> None:
-        tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM3-3B")
-        tokenizer_path = tokenizer.save_pretrained(self.temp_dir.name)[-1]
+@pytest.mark.parametrize("model_id", [
+    "HuggingFaceTB/SmolLM3-3B",
+    "Qwen/Qwen2.5-0.5B"
+])
+def test_models(model_id: str) -> None:
+    with TemporaryDirectory() as temp_dir:
+        tokenizer = AutoTokenizer.from_pretrained(model_id)
+        tokenizer_path = tokenizer.save_pretrained(temp_dir)[-1]
 
         cpp_tokenizer = CppHFTokenizer()
         cpp_tokenizer.load(tokenizer_path)
 
         tokens = tokenizer.encode(PROMPT)
         cpp_tokens = cpp_tokenizer.encode(PROMPT)
-        self.assertEqual(tokens, cpp_tokens)
+        assert tokens == cpp_tokens
+
+
+class TestHfTokenizer(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = TemporaryDirectory()
+        super().setUp()
 
     def test_llama3_2_1b(self) -> None:
         tokenizer = AutoTokenizer.from_pretrained("unsloth/Llama-3.2-1B-Instruct")
@@ -42,7 +50,3 @@ class TestHfTokenizer(unittest.TestCase):
         tokens = tokenizer.encode(PROMPT)
         cpp_tokens = cpp_tokenizer.encode(PROMPT, bos=1)
         self.assertEqual(tokens, cpp_tokens)
-        
-
-    async def test_async_DO_NOT_COMMIT(self) -> None:
-        pass
