@@ -13,11 +13,12 @@
 #
 cmake_minimum_required(VERSION 3.18)
 set(CMAKE_CXX_STANDARD 17)
-
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 project(Tokenizers)
 
 option(TOKENIZERS_BUILD_TEST "Build tests" OFF)
 option(TOKENIZERS_BUILD_TOOLS "Build tools" OFF)
+option(TOKENIZERS_BUILD_PYTHON "Build Python bindings" OFF)
 option(SUPPORT_REGEX_LOOKAHEAD
        "Support regex lookahead patterns (requires PCRE2)" OFF
 )
@@ -36,8 +37,8 @@ set(_pic_flag ${CMAKE_POSITION_INDEPENDENT_CODE})
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/abseil-cpp)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/re2)
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/re2)
 if(NOT DEFINED SPM_BUILD_TEST)
   set(SPM_BUILD_TEST OFF CACHE BOOL "")
 endif()
@@ -135,17 +136,49 @@ if(TOKENIZERS_BUILD_TOOLS)
   add_subdirectory(examples/tokenize_tool)
 endif()
 
+# Build Python bindings
+if(TOKENIZERS_BUILD_PYTHON)
+  include(FetchContent)
+  FetchContent_Declare(
+    pybind11
+    GIT_REPOSITORY https://github.com/pybind/pybind11.git
+    GIT_TAG v2.13.6
+  )
+  FetchContent_MakeAvailable(pybind11)
+
+  # Create the Python extension module
+  pybind11_add_module(pytorch_tokenizers_cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/python_bindings.cpp
+  )
+
+  # Link with the tokenizers library
+  target_link_libraries(pytorch_tokenizers_cpp PRIVATE tokenizers)
+
+  # Set properties for the Python extension
+  target_compile_definitions(pytorch_tokenizers_cpp PRIVATE VERSION_INFO=${PROJECT_VERSION})
+
+  # Set the output name and let setuptools control the output directory
+  set_target_properties(pytorch_tokenizers_cpp PROPERTIES
+    OUTPUT_NAME "pytorch_tokenizers_cpp"
+  )
+
+  # Don't install the Python extension here - let setuptools handle it
+  # The setup.py will copy the built extension to the appropriate location
+endif()
+
 # Installation rules
 include(GNUInstallDirs)
 
-# Install the library and its dependencies
-install(
-  TARGETS tokenizers re2 sentencepiece-static
-  EXPORT tokenizers-targets
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+if(NOT TOKENIZERS_BUILD_PYTHON)
+  # Install the library and its dependencies
+  install(
+    TARGETS tokenizers re2 sentencepiece-static
+    EXPORT tokenizers-targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  )
+endif()
 
 # Install header files
 install(
