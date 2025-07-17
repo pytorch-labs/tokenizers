@@ -8,17 +8,18 @@
 
 include(CMakeFindDependencyMacro)
 include(GNUInstallDirs)
-# Find dependencies
-find_dependency(re2 REQUIRED)
-find_dependency(absl REQUIRED)
 # Directly include sentencepiece library
-set(SENTENCEPIECE_LIBRARY "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libsentencepiece.a")
+set_and_check(TOKENIZERS_LIBDIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
+set(SENTENCEPIECE_LIBRARY "${TOKENIZERS_LIBDIR}/libsentencepiece.a")
 if(NOT EXISTS "${SENTENCEPIECE_LIBRARY}")
   message(
     FATAL_ERROR
       "Could not find sentencepiece library at ${SENTENCEPIECE_LIBRARY}"
   )
 endif()
+
+find_dependency(re2 REQUIRED)
+find_dependency(absl REQUIRED)
 
 # Include the exported targets file
 include("${CMAKE_CURRENT_LIST_DIR}/tokenizers-targets.cmake")
