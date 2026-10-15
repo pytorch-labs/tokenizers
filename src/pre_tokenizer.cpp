@@ -55,10 +55,18 @@ PreTokenizer::Ptr PreTokenizerConfig::create() const {
 
     // Validate invert parameter
     const bool invert_flag = invert ? *invert : false;
-    const bool delimiter_flag = is_delimiter ? *is_delimiter : false;
+    bool delimiter_flag = is_delimiter ? *is_delimiter : false;
     if (invert_flag && delimiter_flag) {
       throw std::runtime_error(
           "invert=true is not supported for Split PreTokenizer with a String pattern.");
+    }
+    // A Regex pattern with an explicit behavior and invert=false uses
+    // delimiter semantics: matches split the input and the text between
+    // them is kept, matching the HuggingFace tokenizers behavior. Without
+    // this, patterns that do not tile the input (e.g. digit isolation with
+    // \p{N}{1,3}) would silently drop all non-matching text.
+    if (!delimiter_flag && !invert_flag && behavior) {
+      delimiter_flag = true;
     }
 
     return PreTokenizer::Ptr(

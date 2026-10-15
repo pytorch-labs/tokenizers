@@ -167,6 +167,20 @@ TEST(NormalizerTest, SequenceNormalizerFromConfig) {
   EXPECT_EQ(result, expected);
 }
 
+TEST(NormalizerTest, EmptySequenceNormalizerFromConfig) {
+  // An empty Sequence normalizer is valid and acts as a no-op, matching the
+  // HuggingFace tokenizers behavior (e.g. Spark-X2.5 tokenizer.json).
+  nlohmann::json config = {
+      {"type", "Sequence"}, {"normalizers", nlohmann::json::array()}};
+
+  NormalizerConfig norm_config;
+  norm_config.parse_json(config);
+  auto normalizer = norm_config.create();
+
+  std::string input = "banana split";
+  EXPECT_EQ(normalizer->normalize(input), input);
+}
+
 TEST(NormalizerTest, EmptyInput) {
   // Test with empty input
   ReplaceNormalizer normalizer(" ", "▁");
