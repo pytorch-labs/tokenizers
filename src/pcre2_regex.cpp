@@ -34,6 +34,8 @@ Error Pcre2Regex::compile(const std::string& pattern) {
       &error_offset,
       nullptr);
 
+  utf_ = regex_ != nullptr;
+
   if (regex_ == nullptr) {
     PCRE2_UCHAR error_buffer[256];
     pcre2_get_error_message(error_code, error_buffer, sizeof(error_buffer));
@@ -107,16 +109,11 @@ std::vector<Match> Pcre2Regex::find_all(const std::string& text) const {
   PCRE2_SPTR subject = reinterpret_cast<PCRE2_SPTR>(text.c_str());
   PCRE2_SIZE subject_length = text.length();
   PCRE2_SIZE offset = 0;
+  uint32_t options = 0;
 
   while (offset < subject_length) {
     int rc = pcre2_match(
-        regex_,
-        subject,
-        subject_length,
-        offset,
-        0, // Default options
-        match_data,
-        nullptr);
+        regex_, subject, subject_length, offset, options, match_data, nullptr);
 
     if (rc < 0) {
       if (rc == PCRE2_ERROR_NOMATCH) {
@@ -139,10 +136,26 @@ std::vector<Match> Pcre2Regex::find_all(const std::string& text) const {
     offset = ovector[1];
 
     // If the match was empty, move forward by one character to avoid infinite
-    // loop
+    // loop. In UTF mode that character can be several bytes long, and a match
+    // started inside it fails with PCRE2_ERROR_BADUTFOFFSET.
     if (ovector[0] == ovector[1]) {
       offset++;
+      while (utf_ && offset < subject_length &&
+             (subject[offset] & 0xC0) == 0x80) {
+        offset++;
+      }
     }
+
+    // In UTF mode each call checks that the subject is valid UTF-8 from its
+    // start offset to the end, which makes this loop quadratic in the length
+    // of the text. The first call has checked all of it, so later calls can
+    // skip the check while they start on a character boundary. (A match can
+    // end inside a character only with \C; keep checking there so that case
+    // still fails with PCRE2_ERROR_BADUTFOFFSET.)
+    options =
+        utf_ && offset < subject_length && (subject[offset] & 0xC0) == 0x80
+        ? 0
+        : PCRE2_NO_UTF_CHECK;
   }
 
   pcre2_match_data_free(match_data);
