@@ -57,10 +57,12 @@ Normalizer::Ptr NormalizerConfig::create() const {
     return Normalizer::Ptr(new PrependNormalizer(*prepend));
   }
   if (type == "Sequence") {
-    if (!normalizers || normalizers->empty()) {
+    if (!normalizers) {
       throw std::runtime_error(
           "Missing normalizers for Normalizer of type Sequence");
     }
+    // An empty list is valid and acts as a no-op, matching the HuggingFace
+    // tokenizers behavior.
     std::vector<Normalizer::Ptr> norms;
     std::transform(
         normalizers->begin(),

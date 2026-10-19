@@ -307,6 +307,40 @@ TEST_F(PreTokenizerConfigTest, Split) {
   assert_split_match(*ptok, "Hello World", {"Hello", " World"});
 }
 
+TEST_F(PreTokenizerConfigTest, SplitWithRegexIsolatedKeepsNonMatchingText) {
+  // A Regex Split with an explicit behavior and invert=false uses delimiter
+  // semantics: non-matching text is kept and matches are isolated. Patterns
+  // that do not tile the input (e.g. digit isolation) must not drop text.
+  PreTokenizerConfig config;
+  const auto ptok = config
+                        .parse_json(
+                            json{
+                                {"type", "Split"},
+                                {"pattern", {{"Regex", R"(\p{N}{1,3})"}}},
+                                {"behavior", "Isolated"},
+                                {"invert", false},
+                            })
+                        .create();
+  // No match: the whole input is kept as a single piece.
+  assert_split_match(*ptok, "Once upon a time,", {"Once upon a time,"});
+  assert_split_match(*ptok, "abc 123 def", {"abc ", "123", " def"});
+}
+
+TEST_F(PreTokenizerConfigTest, SplitWithRegexInvertTrueReturnsMatches) {
+  // invert=true keeps the legacy behavior of returning the matches themselves.
+  PreTokenizerConfig config;
+  const auto ptok = config
+                        .parse_json(
+                            json{
+                                {"type", "Split"},
+                                {"pattern", {{"Regex", R"(\p{N}{1,3})"}}},
+                                {"behavior", "Removed"},
+                                {"invert", true},
+                            })
+                        .create();
+  assert_split_match(*ptok, "abc 123 def", {"123"});
+}
+
 TEST_F(PreTokenizerConfigTest, SplitWithStringPattern) {
   PreTokenizerConfig config;
   const auto ptok = config
